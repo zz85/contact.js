@@ -1,15 +1,23 @@
-var ws = new WebSocket("ws://" + location.hostname + ":8080/");
+"use strict";
 
+var ws = new WebSocket("ws://" + location.hostname + ":8080/transmitter");
+
+var width, height, remoteWidth, remoteHeight;
 var ready = false;
 
 ws.addEventListener('open', function(e) {
 	ready = true;
+	sendDimension();
+	send('devicemotion' + typeof(window.DeviceMotionEvent));
+	send('MozOrientation' + typeof(window.MozOrientation));
+
 });
 
 ws.addEventListener('close', function(e) {
 	ready = false;
-	// perhaps reconnect?
+	ws = null;
 });
+
 
 ws.addEventListener('message', function(e) {
 	var data = e.data;
@@ -20,12 +28,27 @@ ws.addEventListener('message', function(e) {
 		case 'p':
 			ws.send('pp\n'  + d[1]);
 			break;
-		case 'i':
-			ws.send('ii\n'  + 't');
+		case 'r':
+			// sendDimension();
 			break;
+		case 'rr':
+			var dimensions = JSON.parse(d[1]);
+			remoteWidth = dimensions[0];
+			remoteHeight = dimensions[1];
+
+			var remoteRatio = remoteWidth / remoteHeight;
+			var currentRatio = width / height;
+
+			// if (remoteRatio > currentRatio) {
+			// 	// remote width is wider. // currentHeight should be restricted
+			// } else {
+			// 	//
+			// }
+			send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
+			break;
+
 	}
 
-	console.log('message', e);
 });
 
 ws.addEventListener('error', function(e) {
@@ -33,43 +56,91 @@ ws.addEventListener('error', function(e) {
 });
 
 function send(e) {
-	if (ready) ws.send(e);
+	if (ws && ready) ws.send(e);
 }
 
 function convert(touches) {
 	var i, len, px, py, touch;
-	var o = {};
 	var a = [];
 	for (i=0, len = touches.length; i<len; i++) {
 		touch = touches[i];
 		px = touch.pageX;
 		py = touch.pageY;
-		o[i] = [px, py];
 		a.push(px, py);
 	}
 
 	return JSON.stringify(a);
 }
 
+function sendDimension() {
+	width = window.innerWidth;
+	height = window.innerHeight;
+	send('r\n['+width+','+height+']');
+}
+
 window.onerror = function(message, file, line) {
-	ws.send([message, file, line].join('\t'));
+	send([message, file, line].join('\t'));
 }
 
 window.addEventListener('touchend', function(event) {
-	if (event.touches.length==0)
-	touchStart = false;
 	touches = event.touches;
 	send('te\n' + convert(touches));
 }, false);
 
 window.addEventListener('touchmove', function(event) {
 	event.preventDefault();
-	touches = event.touches;
 	send('tm\n' + convert(touches));
 }, false);
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
-	touchStart = true;
 	send('ts\n' + convert(touches));
 }, false);
+
+window.addEventListener('touchcancel', function(event) {
+	touches = event.touches;
+	send('tc\n' + convert(touches));
+}, false);
+
+window.addEventListener('resize', sendDimension, false);
+
+
+function tilt(a, b) {
+	send('tilt [' + a + ', ' + b + ']');
+}
+
+
+// hello in 50 languages.
+// css3d mobile deviceorientation threejs
+// oh, what a time to be an anti-anti-null-transform.
+var mina, minb, minc, maxa, maxb, maxc;
+
+maxa = maxb = maxc = Number.NEGATIVE_INFINITY;
+mina = minb = minc = Number.POSITIVE_INFINITY;
+window.addEventListener("deviceorientation", function(event) {
+    // send([event.alpha, event.beta, event.gamma].join(','));
+    maxa = Math.max(maxa, event.alpha);
+    maxb = Math.max(maxb, event.beta);
+    maxc = Math.max(maxc, event.gamma);
+    mina = Math.min(mina, event.alpha);
+    minb = Math.min(minb, event.beta);
+    minc = Math.min(minc, event.gamma);
+    (Math.random()<0.5) && 
+    send('yoz' + JSON.stringify([[mina, maxa], [minb, maxb], [minc, maxc]]));
+
+    // alpha = compass (0, 360)
+    // beta = forward roll (-90, 90) (-180, 180 ff)
+    // gamma = -90, 270. (-90, 90 ff)
+}, true);
+
+// Use Black
+// Joystick
+// Presentation
+
+// window.addEventListener('devicemotion', function (event) {
+// 	 (Math.random()<0.3) && send('acceleration' + JSON.stringify([
+// 	 	event.acceleration.x,
+// 	 	event.acceleration.y,
+// 	 	event.acceleration.z]));
+// }, true);
+

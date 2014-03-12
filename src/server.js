@@ -15,40 +15,49 @@ var pings = {};
 var connections = [];
 var receiver, transmitter;
 
+var TYPE_RECEIVER = 'receiver',
+	TYPE_TRANSMITTER = 'transmitter';
+
 wss.on('connection', function(ws) {
 	var info = ws.upgradeReq;
 	console.log('Received websocket connection to ', info.url );
 
-	ws.send('i'); // identify yourself please
+	if (info.url == '/transmitter') {
+		transmitter = ws;
+		ws.type = 'transmitter';
+		console.log('Transmitter connected.');
+		if (receiver) {
+			receiver.send('t');
+			receiver.wh && ws.send('rr\n' + receiver.wh);
+		}
+	} else if (info.url == '/receiver') {
+		// receiver
+		receiver = ws;
+		ws.type = TYPE_RECEIVER;
+		console.log('Receiver connected.');
+		if (transmitter) {
+			transmitter.send('t');
+			transmitter.wh && ws.send('rr\n' + transmitter.wh);
+		}
+	}
+
+	ws.send('r');
+
 	ws.on('message', processMessage);
 
 	ws.on('close', function(e) {
 		console.log('socket closed');
-		if (ws.type=='transmitter') transmitter = null;
-		else if (ws.type=='receiver') receiver = null;
+		if (ws.type==TYPE_TRANSMITTER) transmitter = null;
+		else if (ws.type==TYPE_RECEIVER) receiver = null;
 	});
 
 	function processMessage(data) {
 		var d = data.split('\n');
 		switch (d[0]) {
-			case 'ii': // indentification reply
-				if (d[1]=='r') {
-					// receiver
-					receiver = ws;
-					ws.type = 'receiver';
-					console.log('Receiver connected.');
-					if (transmitter) receiver.send('t');
-				} else if (d[1] == 't') {
-					// transmitter
-					transmitter = ws;
-					ws.type = 'transmitter';
-					console.log('Transmitter connected.');
-					if (receiver) receiver.send('t');
-				}
-				break;
 			case 'ts': // receives touch data
 			case 'tm':
 			case 'te':
+			case 'tc':
 				if (receiver) receiver.send(data);
 				break;
 			case 'p': // receives ping
@@ -60,7 +69,12 @@ wss.on('connection', function(ws) {
 				delete pings[reply];
 				break;
 			case 'r': // handle receiver resizing
-				// w, h.
+				var dimensions = JSON.parse(d[1]);
+				ws.w = dimensions[0];
+				ws.h = dimensions[1];
+				ws.wh = d[1];
+				if (ws.type==TYPE_RECEIVER) transmitter && transmitter.send('rr\n' + receiver.wh);
+				if (ws.type==TYPE_TRANSMITTER) receiver && receiver.send('rr\n' + transmitter.wh);
 				break;
 			default:
 				// We just dump stuff for logging

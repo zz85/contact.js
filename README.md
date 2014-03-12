@@ -50,6 +50,11 @@ Otherwise open the recevier demo file on your desktop, Eg.
 http://localhost:8080/recevier.html
 ```
 
+Changelog
+--
+2 Mar 03 - Initial Prototype
+
+
 What is supported
 --
 Probably simple use cases and demos of multi-touch web applications.
@@ -57,13 +62,16 @@ Probably simple use cases and demos of multi-touch web applications.
 What is not supported
 --
 Probably anything else.
+Also checkout [remote.js](https://github.com/jtangelder/remote.js), a project inspired by this.
 
 Features that would be good to have
 --
-1. Support scaling for mapping the difference screen sizes
+1. Support scaling for mapping difference in screen sizes
 2. Binary protocol for more effecient network usage
 3. Multi-channel server to support more clients / receivers
 4. Better implementation of the W3C TouchEvent specifications
+5. Refactor this into a nice client library
+6. Put this on a public server
 
 Think you can contribute something? Make a [pull request](https://github.com/zz85/contact.js).
 

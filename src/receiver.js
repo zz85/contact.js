@@ -1,7 +1,49 @@
+"use strict";
+
+var contact = window.contact || {}; // Namespace
+
+var ws;
+
+contact.Recevier = function(destination) {
+	connect(destination);
+}
+
+
+window.addEventListener('load', function() {
+	new contact.Recevier(location.hostname);
+});
+
+function connect(destination) {
+	ws = new WebSocket("ws://" + destination + ":8080/receiver");
+
+	ws.addEventListener('open', function(e) {
+		console.log('Connected to ' + ws.URL);
+		sendDimension();
+	});
+	ws.addEventListener('close', function(e) {
+		console.log('Disconnected from ' + ws.URL + ' (' + e.reason + ')');
+		ws = null;
+	});
+
+	ws.addEventListener('message', onMessage);
+
+	ws.addEventListener('error', function(e) {
+		console.log('error', e);
+		ws = null;
+	});
+}
+
+window.addEventListener('resize', sendDimension, false);
+
+window.onerror = function(message, file, line) {
+	send([message, file, line].join('\t'));
+}
+
 var tmaps = {
 	'ts': 'touchstart',
 	'te': 'touchend',
 	'tm': 'touchmove',
+	'tc': 'touchcancel',
 };
 
 function createEvents(a, b) {
@@ -14,6 +56,9 @@ function createEvents(a, b) {
 	for (i=0, len = a.length / 2;i<len;i++) {
 		x = a[i * 2];
 		y = a[i * 2 + 1];
+
+		x = x / scaleWidth * width;
+		y = y / scaleHeight * height;
 
 		touches.push({
 			pageX: x,
@@ -56,6 +101,7 @@ function createEvents(a, b) {
 	touchEvent.touches = touches;
 
 	var len=uniqueTargets.length;
+
 	if (len) {
 		// for (i=0; i<len; i++) {
 		// 	uniqueTargets[i].target.dispatchEvent(touchEvent);
@@ -71,20 +117,15 @@ function createEvents(a, b) {
 		window.dispatchEvent(touchEvent);
 	}
 
+	// debug({touches:touches});
+
 }
 
-var ws = new WebSocket("ws://" + location.hostname + ":8080/");
 
-ws.addEventListener('open', function(e) {
-	ready = true;
-	console.log('Connected to ' + ws.URL);
-	sendDimension()
-});
-ws.addEventListener('close', function(e) {
-	console.log('Disconnected from ' + ws.URL + ' (' + e.reason + ')');
-});
+var scaleWidth, scaleHeight;
+var width, height;
 
-ws.addEventListener('message', function(e) {
+function onMessage(e) {
 	var data = e.data;
 
 	var d = data.split('\n');
@@ -93,52 +134,75 @@ ws.addEventListener('message', function(e) {
 		case 'p':
 			ws.send('pp\n'  + d[1]);
 			break;
-		case 'i':
-			ws.send('ii\n'  + 'r');
-			break;
 		case 't':
 			console.log('transmitter is ready');
+			break;
+		case 'r':
+			// sendDimension();
 			break;
 		case 'ts':
 		case 'tm':
 		case 'te':
+		case 'tc':
 			var a = JSON.parse(d[1]);
 			createEvents(a, d[0]);
 			break;
+		case 'rr':
+			var dimensions = JSON.parse(d[1]);
+			scaleWidth = dimensions[0];
+			scaleHeight = dimensions[1];
+			break;
 	}
-
-	// console.log('message', e);
-});
-
-ws.addEventListener('error', function(e) {
-	console.log('error', e);
-});
-
-function send(e) {
-	if (ready) ws.send(e);
 }
 
-function convert() {
-	var i, len, px, py, touch;
-	var o = {};
-	var a = [];
-	for (i=0, len = touches.length; i<len; i++) {
-		touch = touches[i];
-		px = touch.pageX;
-		py = touch.pageY;
-		o[i] = [px, py];
-		a.push(px, py);
-	}
-
-	return JSON.stringify(a);
+function send(e) {
+	if (ws) ws.send(e);
 }
 
 function sendDimension() {
-	send('r\n'+window.innerHeight+','+window.innerWidth);
+	width = window.innerWidth;
+	height = window.innerHeight;
+	send('r\n['+width+','+height+']');
 }
 
-window.addEventListener('resize', sendDimension, false);
 
-window.onerror = function(message, file, line) {
-	send([message, file, line].join('\t'));
-}
+// var particles = [];
+
+// for (var i=0;i<10;i++) {
+// 	particles.push(createParticle());
+// }
+
+// function createParticle() {
+// 	var canvas = document.createElement('canvas');
+// 	canvas.style.position = 'absolute';
+// 	canvas.style.zIndex = 9999;
+
+// 	canvas.width = 44;
+// 	canvas.height = 44;
+// 	var ctx = canvas.getContext('2d');
+// 	ctx.beginPath();
+// 	ctx.arc(22, 22, 20, 0, 2*Math.PI, true);
+
+// 	ctx.fillStyle = "rgba(200, 0, 0, 0.2)";
+// 	ctx.fill();
+
+// 	ctx.lineWidth = 2;
+// 	ctx.strokeStyle = "rgba(200, 0, 0, 0.8)";
+// 	ctx.stroke();
+
+// 	document.body.appendChild(canvas);
+
+// 	return canvas;
+
+// }
+
+// function debug(event) {
+// 	// console.log('moo');
+// 	var t = event.touches;
+// 	for (i=0;i<t.length;i++) {
+// 		var x = t[i].pageX;
+// 		var y = t[i].pageY;
+// 		particles[i].style.left = (x-20) + 'px';
+// 		particles[i].style.top = (y-20) + 'px';
+// 	}
+// }
