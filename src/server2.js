@@ -23,29 +23,43 @@ var TYPE_RECEIVER = 'receiver',
 class TransmitterSession {
 	constructor(ws) {
 		this.ws = ws;
-
 		this.speed = 1;
+		
 
-		console.log('moo');
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => console.log('TransmitterSession closed', e));
 	}
 
-	move(dx, dy, dt) {
+	updateMouse() {
+		console.log('updateMouse');
 		var mouse = robot.getMousePos();
-		var scale = 0.01;
+		this.mouse = {
+			x: mouse.x,
+			y: mouse.y
+		};
+	}
+
+	move(dx, dy, dt) {
+		var mouse = this.mouse;
+		var scale = 0.02;
 
 		var dist = Math.sqrt(dx * dx + dy * dy);
 		var currentSpeed = Math.max(dist / dt * 1000 * scale, 1);
-		var speed = this.speed * 0.5 + currentSpeed * 0.5;
-		this.speed = speed;
+		
+		var speed = this.speed * 0.8 + currentSpeed * 0.2;
+		
 		var vx = dx * speed;
 		var vy = dy * speed;
-		console.log(vx, vy);
 		var tx = mouse.x + vx;
 		var ty = mouse.y + vy;
 
-		robot.moveMouse(tx, ty);
+		this.speed = speed;
+		this.mouse.x = tx;
+		this.mouse.y = ty;
+
+		robot.moveMouse(this.mouse.x, this.mouse.y);
+		console.log('currentSpeed', currentSpeed, '->', speed);;
+		console.log('vx', vx, vy);
 		console.log('move', tx, ty);
 	}
 
@@ -66,13 +80,28 @@ class TransmitterSession {
 
 		switch (cmd) {
 			case 'ts': // receives touch data
+				this.clicked = false;
+				this.moved = false;
+				this.speed = 1;
+				this.updateMouse();
 				this.last = coords;
+				this.down = Date.now();
 				break;
 			case 'tm':
+				if (!this.moved && Date.now() - this.down > 250) {
+					robot.mouseToggle('down');
+				}
+				this.moved = true;
 				this.last = coords;
 				break;
 			case 'te':
 				this.last = null;
+				if (!this.moved) {
+					robot.mouseToggle('down');
+					robot.mouseToggle('up');
+					this.clicked = true;
+				}
+				
 				break;
 			case 'dm':
 				this.move(coords[0], coords[1], coords[2]);

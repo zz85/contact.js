@@ -111,7 +111,7 @@ window.addEventListener('touchend', function(event) {
 }, false);
 
 window.addEventListener('touchmove', function(event) {
-	// event.preventDefault();
+	event.preventDefault();
 	touches = event.touches;
 	setLast(touches);
 	send('tm\n' + convert(touches));
