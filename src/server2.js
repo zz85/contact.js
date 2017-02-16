@@ -72,9 +72,10 @@ class TransmitterSession {
 		// data
 		// console.log('msg', cmd, coords);
 
-		// TODO support scrolling / pitch-zoom / double clicking
+		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// TODO server mouse reporting
-		// MOUSE recording.
+		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
+		// TODO MOUSE recording.
 
 		switch (cmd) {
 			case 'ts': // receives touch data
