@@ -9,15 +9,12 @@ ws.addEventListener('open', function(e) {
 	ready = true;
 	sendDimension();
 	send('devicemotion' + typeof(window.DeviceMotionEvent));
-	send('MozOrientation' + typeof(window.MozOrientation));
-
 });
 
 ws.addEventListener('close', function(e) {
 	ready = false;
 	ws = null;
 });
-
 
 ws.addEventListener('message', function(e) {
 	var data = e.data;
@@ -82,18 +79,47 @@ window.onerror = function(message, file, line) {
 	send([message, file, line].join('\t'));
 }
 
+var last = {
+
+}
+
+function setLast(touches) {
+	var touch = touches[0];
+	if (touch) {
+		var now = Date.now();
+
+		if (last.time) {
+			var dt = now - last.time;
+			var dx = touch.pageX - last.pageX;
+			var dy = touch.pageY - last.pageY;
+
+			send('dm\n[' + dx + ',' + dy + ',' + dt + ']')
+
+			console.log(dx / dt * 1000, dy / dt * 1000);
+		}
+
+		last.pageX = touch.pageX;
+		last.pageY = touch.pageY;
+		last.time = now;
+	}
+}
+
 window.addEventListener('touchend', function(event) {
 	touches = event.touches;
+	last.time = 0;
 	send('te\n' + convert(touches));
 }, false);
 
 window.addEventListener('touchmove', function(event) {
 	// event.preventDefault();
+	touches = event.touches;
+	setLast(touches);
 	send('tm\n' + convert(touches));
 }, false);
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
+	setLast(touches);
 	send('ts\n' + convert(touches));
 }, false);
 
@@ -125,8 +151,9 @@ window.addEventListener("deviceorientation", function(event) {
     mina = Math.min(mina, event.alpha);
     minb = Math.min(minb, event.beta);
     minc = Math.min(minc, event.gamma);
-    (Math.random()<0.5) && 
-    send('yoz' + JSON.stringify([[mina, maxa], [minb, maxb], [minc, maxc]]));
+    
+	// (Math.random()<0.5) && 
+    // send('yoz' + JSON.stringify([[mina, maxa], [minb, maxb], [minc, maxc]]));
 
     // alpha = compass (0, 360)
     // beta = forward roll (-90, 90) (-180, 180 ff)
