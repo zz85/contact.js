@@ -25,7 +25,6 @@ class TransmitterSession {
 		this.ws = ws;
 		this.speed = 1;
 		
-
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => console.log('TransmitterSession closed', e));
 	}
@@ -54,8 +53,10 @@ class TransmitterSession {
 		var ty = mouse.y + vy;
 
 		this.speed = speed;
-		this.mouse.x = tx;
-		this.mouse.y = ty;
+		this.mouse.x = Math.max(0, tx);
+		this.mouse.y = Math.max(0, ty);
+
+		// TODO add max bounds
 
 		robot.moveMouse(this.mouse.x, this.mouse.y);
 		console.log('currentSpeed', currentSpeed, '->', speed);;
@@ -69,14 +70,11 @@ class TransmitterSession {
 		var coords = data[1] && JSON.parse(data[1]);
 
 		// data
-		console.log('msg', cmd, coords);
-		var dx, dy;
-		// if (this.last && coords && coords.length) {
-		// 	// TODO add velocity
-		// 	dx = coords[0] - this.last[0];
-		// 	dy = coords[1] - this.last[1];
-			
-		// }
+		// console.log('msg', cmd, coords);
+
+		// TODO support scrolling / pitch-zoom / double clicking
+		// TODO server mouse reporting
+		// MOUSE recording.
 
 		switch (cmd) {
 			case 'ts': // receives touch data
