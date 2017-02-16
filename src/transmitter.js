@@ -1,6 +1,6 @@
 "use strict";
 
-var ws = new WebSocket("ws://" + location.hostname + ":8080/transmitter");
+var ws = new WebSocket("ws://" + location.hostname + ":8081/transmitter");
 
 var width, height, remoteWidth, remoteHeight;
 var ready = false;
@@ -88,7 +88,7 @@ window.addEventListener('touchend', function(event) {
 }, false);
 
 window.addEventListener('touchmove', function(event) {
-	event.preventDefault();
+	// event.preventDefault();
 	send('tm\n' + convert(touches));
 }, false);
 

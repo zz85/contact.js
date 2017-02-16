@@ -1,0 +1,15 @@
+{
+  "name": "contact.js",
+  "version": "1.0.0",
+  "description": "Remote Multi-touch, Websockets",
+  "main": "src/server.js",
+  "repository": {
+    "url": "git@github.com:zz85/contact.js.git",
+    "type": "git"
+  },
+  "author": "Joshua Koo <zz85nus@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^2.0.3"
+  }
+}

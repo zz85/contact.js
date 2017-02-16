@@ -1,5 +1,5 @@
-var http_port = 8000,
-	websockets_port = 8080,
+var http_port = 8001,
+	websockets_port = 8081,
 	http = require('http'),
 	urlParser = require('url'),
 	fs = require('fs'),

@@ -14,7 +14,7 @@ window.addEventListener('load', function() {
 });
 
 function connect(destination) {
-	ws = new WebSocket("ws://" + destination + ":8080/receiver");
+	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
 	ws.addEventListener('open', function(e) {
 		console.log('Connected to ' + ws.URL);
@@ -109,8 +109,8 @@ function createEvents(a, b) {
 
 		// For simplicity now, fire off to the first target
 		target = uniqueTargets[0];
-		touchEvent.targetTouches = target.touches;
-		touchEvent.currentTarget = target.target;
+		// touchEvent.targetTouches = target.touches;
+		// touchEvent.currentTarget = target.target;
 		target.target.dispatchEvent(touchEvent);
 
 	} else {
