@@ -17,6 +17,8 @@ class TouchPadSession {
 			x: mouse.x,
 			y: mouse.y
 		};
+
+		this.screenSize = robot.getScreenSize();
 	}
 
 	move(dx, dy, dt) {
@@ -34,10 +36,8 @@ class TouchPadSession {
 		var ty = mouse.y + vy;
 
 		this.speed = speed;
-		this.mouse.x = Math.max(0, tx);
-		this.mouse.y = Math.max(0, ty);
-
-		// TODO add max bounds
+		this.mouse.x = Math.min(Math.max(0, tx), this.screenSize.width);
+		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
 
 		robot.moveMouse(this.mouse.x, this.mouse.y);
 		// console.log('currentSpeed', currentSpeed, '->', speed);;
