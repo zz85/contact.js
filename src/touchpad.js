@@ -7,7 +7,10 @@ class TouchPadSession {
 		this.speed = 1;
 		
 		ws.on('message', data => this.onMessage(data));
-		ws.on('close', e => console.log('TransmitterSession closed', e));
+		ws.on('close', e => this.onClose(e));
+
+		this.updateMouse();
+		this.interval = setInterval(() => this.onInterval, 1000);
 	}
 
 	updateMouse() {
@@ -26,7 +29,7 @@ class TouchPadSession {
 		var scale = 0.02;
 
 		var dist = Math.sqrt(dx * dx + dy * dy);
-		var currentSpeed = Math.max(dist / dt * 1000 * scale, 1);
+		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, 1), 10);
 		
 		var speed = this.speed * 0.8 + currentSpeed * 0.2;
 		
@@ -40,7 +43,7 @@ class TouchPadSession {
 		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
 
 		robot.moveMouse(this.mouse.x, this.mouse.y);
-		// console.log('currentSpeed', currentSpeed, '->', speed);;
+		console.log('currentSpeed', currentSpeed, '->', speed);
 		// console.log('vx', vx, vy);
 		// console.log('move', tx, ty);
 	}
@@ -54,6 +57,7 @@ class TouchPadSession {
 		// console.log('msg', cmd, coords);
 
 		// TODO support scrolling / pitch-zoom / double clicking / right click
+		// https://github.com/zingchart/zingtouch
 		// TODO server mouse reporting
 		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
 		// TODO MOUSE recording.
@@ -103,6 +107,19 @@ class TouchPadSession {
 				// console.log(data);
 				break;
 		}
+	}
+
+	send(payload) {
+		if (this.ws) this.ws.send(JSON.stringify(payload));
+	}
+
+	onInterval() {
+		this.send([])
+	}
+
+	onClose(e) {
+		console.log('TransmitterSession closed', e);
+		clearInterval(this.interval);
 	}
 }
 
