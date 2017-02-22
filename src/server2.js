@@ -224,7 +224,7 @@ http.createServer(handleRequest).listen(port);
 
 var hostname = require('os').hostname();
 
-require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
+require('dns').lookup(hostname, function (err, addr, fam) {
  	console.log('Running at http server on http://' + addr  + ((port === 80) ? '' : ':') + port + '/');
 	console.log('Running at http server on http://' + hostname  + ((port === 80) ? '' : ':') + port + '/');
  	console.log('Running at contact.js websocket server on http://' + addr  + ((port === 80) ? '' : ':') + websockets_port + '/');
@@ -232,3 +232,7 @@ require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
 
 console.log('Simple nodejs server has started...');
 console.log('Base directory at ' + currentDir);
+
+var bonjour = require('bonjour')()
+// advertise an HTTP server on port
+bonjour.publish({ name: 'Contact Server', type: 'http', port: http_port })
