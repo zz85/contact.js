@@ -22,8 +22,6 @@
 		var touches = [];
 		var touchStart = true;
 
-		// RAF poly fill
-
 		function animate() {
 			requestAnimationFrame(animate);
 			ctx.clearRect(0, 0, w, h);
@@ -42,7 +40,7 @@
 				py = touch.pageY;
 
 				ctx.beginPath();
-				ctx.arc(px, py, 20, 0, 2*Math.PI, true);
+				ctx.arc(px, py, 20, 0, 2 * Math.PI, true);
 
 				ctx.fillStyle = "rgba(200, 0, 0, 0.2)";
 				ctx.fill();
@@ -51,6 +49,12 @@
 				ctx.strokeStyle = "rgba(200, 0, 0, 0.8)";
 				ctx.stroke();
 			}
+
+			ctx.beginPath();
+			ctx.arc(remoteMouseX * w, remoteMouseY * h, 20, 0, 2 * Math.PI, true);
+			ctx.fillStyle = "rgba(200, 0, 0, 0.2)";
+			ctx.fill();
+
 		}
 
 		function start() {

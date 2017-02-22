@@ -10,11 +10,11 @@ class TouchPadSession {
 		ws.on('close', e => this.onClose(e));
 
 		this.updateMouse();
-		this.interval = setInterval(() => this.onInterval, 1000);
+		this.interval = setInterval(() => this.onInterval(), 100);
 	}
 
 	updateMouse() {
-		console.log('updateMouse');
+		// console.log('updateMouse');
 		var mouse = robot.getMousePos();
 		this.mouse = {
 			x: mouse.x,
@@ -109,12 +109,14 @@ class TouchPadSession {
 		}
 	}
 
-	send(payload) {
-		if (this.ws) this.ws.send(JSON.stringify(payload));
+	send(cmd, data) {
+		var payload = cmd + '\n' + JSON.stringify(data);
+		if (this.ws) this.ws.send(payload);
 	}
 
 	onInterval() {
-		this.send([])
+		this.updateMouse();
+		this.send('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
 	}
 
 	onClose(e) {

@@ -1,5 +1,7 @@
 "use strict";
 
+var remoteMouseX, remoteMouseY;
+
 function Connection(target, handler) {
 	var ws;
 	var ready = false;
@@ -40,7 +42,6 @@ function Connection(target, handler) {
 
 
 function startTransmitter() {
-
 	var width, height, remoteWidth, remoteHeight;
 
 	var handler = {
@@ -85,7 +86,9 @@ function startTransmitter() {
 					send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
 					break;
 				case 'mc':
-
+					var dimensions = JSON.parse(d[1]);
+					remoteMouseX = dimensions[0];
+					remoteMouseY = dimensions[1];
 					break;
 
 			}
