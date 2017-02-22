@@ -43,7 +43,7 @@ class TouchPadSession {
 		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
 
 		robot.moveMouse(this.mouse.x, this.mouse.y);
-		console.log('currentSpeed', currentSpeed, '->', speed);
+		// console.log('currentSpeed', currentSpeed, '->', speed);
 		// console.log('vx', vx, vy);
 		// console.log('move', tx, ty);
 	}
@@ -104,7 +104,7 @@ class TouchPadSession {
 				break;
 			default:
 				// We just dump stuff for logging
-				// console.log(data);
+				console.log(data);
 				break;
 		}
 	}

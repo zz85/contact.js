@@ -8,6 +8,7 @@
 	</style>
 </head>
 <body>
+	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
 	<script type="text/javascript">
 
@@ -31,6 +32,11 @@
 		function update() {
 			ctx.clearRect(0, 0, w, h);
 
+			ctx.beginPath();
+			ctx.arc(remoteMouseX * w, remoteMouseY * h, 5, 0, 2 * Math.PI, true);
+			ctx.fillStyle = "rgba(0, 0, 255, 0.2)";
+			ctx.fill();
+
 			if (!touchStart) return;
 
 			var i, len, px, py, touch;
@@ -49,12 +55,6 @@
 				ctx.strokeStyle = "rgba(200, 0, 0, 0.8)";
 				ctx.stroke();
 			}
-
-			ctx.beginPath();
-			ctx.arc(remoteMouseX * w, remoteMouseY * h, 20, 0, 2 * Math.PI, true);
-			ctx.fillStyle = "rgba(200, 0, 0, 0.2)";
-			ctx.fill();
-
 		}
 
 		function start() {
