@@ -116,27 +116,27 @@ function startTransmitter() {
 		touches = event.touches;
 		last.time = 0;
 		send('te\n' + convert(touches));
-	}, false);
+	});
 
 	window.addEventListener('touchmove', function(event) {
 		event.preventDefault();
 		touches = event.touches;
 		setLast(touches);
 		send('tm\n' + convert(touches));
-	}, false);
+	});
 
 	window.addEventListener('touchstart', function(event) {
 		touches = event.touches;
 		setLast(touches);
 		send('ts\n' + convert(touches));
-	}, false);
+	});
 
 	window.addEventListener('touchcancel', function(event) {
 		touches = event.touches;
 		send('tc\n' + convert(touches));
-	}, false);
+	});
 
-	window.addEventListener('resize', sendDimension, false);
+	window.addEventListener('resize', sendDimension);
 
 
 	function tilt(a, b) {
@@ -151,7 +151,7 @@ function startTransmitter() {
 
 	maxa = maxb = maxc = Number.NEGATIVE_INFINITY;
 	mina = minb = minc = Number.POSITIVE_INFINITY;
-	window.addEventListener("deviceorientation", function(event) {
+	window.addEventListener('deviceorientation', function(event) {
 		// send([event.alpha, event.beta, event.gamma].join(','));
 		maxa = Math.max(maxa, event.alpha);
 		maxb = Math.max(maxb, event.beta);
@@ -166,18 +166,35 @@ function startTransmitter() {
 		// alpha = compass (0, 360)
 		// beta = forward roll (-90, 90) (-180, 180 ff)
 		// gamma = -90, 270. (-90, 90 ff)
-	}, true);
+	});
 
 	// Use Black
 	// Joystick
 	// Presentation
 
-	// window.addEventListener('devicemotion', function (event) {
-	// 	 (Math.random()<0.3) && send('acceleration' + JSON.stringify([
-	// 	 	event.acceleration.x,
-	// 	 	event.acceleration.y,
-	// 	 	event.acceleration.z]));
-	// }, true);
+	// TODO refactor these into adapters / plugins
+	var avg_ax = 0, avg_ay = 0, avg_az = 0;
+	var dv_count = 0;
+	var t = 0.5;
+	var u = 0.5;
+
+	window.addEventListener('devicemotion', function (event) {
+		avg_ax = avg_ax * t + event.acceleration.x * u;
+		avg_ay = avg_ay * t + event.acceleration.y * u;
+		avg_az = avg_az * t + event.acceleration.z * u;
+		dv_count++;
+	});
+
+	setInterval(function() {
+		send('dv_count' + dv_count);
+
+		send('acceleration' + JSON.stringify([
+		 	avg_ax,
+		 	avg_ay,
+		 	avg_az]));
+
+		dv_count = 0;
+	}, 100);
 }
 
 startTransmitter();
