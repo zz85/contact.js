@@ -29,7 +29,7 @@ class TouchPadSession {
 		var scale = 0.02;
 
 		var dist = Math.sqrt(dx * dx + dy * dy);
-		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, 1), 10);
+		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, .2), 10);
 		
 		var speed = this.speed * 0.8 + currentSpeed * 0.2;
 		
