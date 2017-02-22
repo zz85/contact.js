@@ -133,11 +133,9 @@ window.addEventListener('touchcancel', function(event) {
 
 window.addEventListener('resize', sendDimension);
 
-
 function tilt(a, b) {
 	send('tilt [' + a + ', ' + b + ']');
 }
-
 
 // hello in 50 languages.
 // css3d mobile deviceorientation threejs
@@ -166,6 +164,7 @@ function activateDeviceMotion() {
 	var t = 0.5;
 	var u = 0.5;
 	var THRES = 5;
+	var max_amp = 0;
 
 	function sign(x) {
 		if (x > 0) return 1;
@@ -187,18 +186,22 @@ function activateDeviceMotion() {
 		if (Math.abs(avg_ay) > THRES) s += ' y:' + sign(avg_ay);
 		if (Math.abs(avg_az) > THRES) s += ' z:' + sign(avg_az);
 
+		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
+		
 		// if (s) send(s);
 		send('dm\n[' + acc.x + ',' + acc.y + ',' + acc.z + ']');
 	});
 
 	setInterval(function() {
 		// send('dv_count' + dv_count);
+		// send('max_amp' + max_amp);
 		// send('acceleration' + JSON.stringify([ avg_ax, avg_ay, avg_az]));
 		dv_count = 0;
 	}, 100);
 }
 
 
+// activateDeviceOrientation();
 activateDeviceMotion();
 
 var target = 'ws://' + location.hostname + ':8081/touchpad';

@@ -1,16 +1,20 @@
 var robot = require('robotjs');
 
+var MIN_SPEED = 0.15;
+var MAX_SPEED = 5;
+
 // Remote TouchPad / Remote Control Session
 class TouchPadSession {
-	constructor(ws) {
+	constructor(ws, sessions) {
 		this.ws = ws;
-		this.speed = 1;
+		this.sessions = sessions;
+		this.speed = MIN_SPEED;
 		
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => this.onClose(e));
 
 		this.updateMouse();
-		this.interval = setInterval(() => this.onInterval(), 100);
+		this.interval = setInterval(() => this.onInterval(), 1000 / 60);
 	}
 
 	updateMouse() {
@@ -26,10 +30,10 @@ class TouchPadSession {
 
 	move(dx, dy, dt) {
 		var mouse = this.mouse;
-		var scale = 0.02;
+		var scale = 0.004;
 
 		var dist = Math.sqrt(dx * dx + dy * dy);
-		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, .2), 10);
+		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, MIN_SPEED), MAX_SPEED);
 		
 		var speed = this.speed * 0.8 + currentSpeed * 0.2;
 		
@@ -61,6 +65,7 @@ class TouchPadSession {
 		// TODO server mouse reporting
 		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
 		// TODO MOUSE recording.
+		// TODO add remote screen sharing?
 
 		switch (cmd) {
 			case 'ts': // receives touch data
@@ -103,11 +108,25 @@ class TouchPadSession {
 			case 'r': // handle receiver resizing
 				break;
 			case 'dm':
+				this.sendToReceivers(msg);
+				break;
+			case 'do':
+				this.sendToReceivers(msg);
 				break;
 			default:
 				// We just dump stuff for logging
 				console.log(data);
 				break;
+		}
+	}
+
+	sendToReceivers(msg) {
+		for (let session of this.sessions) {
+			if (session instanceof TouchPadSession) {
+
+			} else {
+				session.send(msg);
+			}
 		}
 	}
 

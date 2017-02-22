@@ -152,6 +152,8 @@ function onMessage(e) {
 			scaleWidth = dimensions[0];
 			scaleHeight = dimensions[1];
 			break;
+		default:
+			console.log(d);
 	}
 }
 
