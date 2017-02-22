@@ -57,7 +57,7 @@ class TouchPadSession {
 		// console.log('msg', cmd, coords);
 
 		// TODO support scrolling / pitch-zoom / double clicking / right click
-		// https://github.com/zingchart/zingtouch
+		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
 		// TODO server mouse reporting
 		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
 		// TODO MOUSE recording.

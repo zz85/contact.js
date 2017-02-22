@@ -50,6 +50,8 @@ function startTransmitter() {
 				// }
 				send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
 				break;
+			case 'mc':
+				break;
 
 		}
 
@@ -86,9 +88,7 @@ function startTransmitter() {
 		send([message, file, line].join('\t'));
 	}
 
-	var last = {
-
-	}
+	var last = {};
 
 	function setLast(touches) {
 		var touch = touches[0];
