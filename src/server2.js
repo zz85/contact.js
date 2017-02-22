@@ -45,6 +45,7 @@ wss.on('connection', function(ws) {
 			receiver.send('t');
 			receiver.wh && ws.send('rr\n' + receiver.wh);
 		}
+		ws.on('message', processMessage);
 	} else if (info.url == '/receiver') {
 		// receiver
 		receiver = ws;
@@ -54,11 +55,12 @@ wss.on('connection', function(ws) {
 			transmitter.send('t');
 			transmitter.wh && ws.send('rr\n' + transmitter.wh);
 		}
+		ws.on('message', processMessage);
 	}
 
 	ws.send('r');
 
-	ws.on('message', processMessage);
+
 
 	ws.on('close', function(e) {
 		console.log('socket closed');

@@ -12,4 +12,6 @@ var CMDS = {
 	'rr': 'request resize. server size [w, h]',
 	'r': 'resized to [w, h]',
 	'mc': 'mouse coordinates [0..1, 0..1]',
+	'mm': 'mouse moving [dx, dy, dt]',
+	'dm': 'device motion [accx, accy, accz]'
 };

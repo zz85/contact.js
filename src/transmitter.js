@@ -102,7 +102,7 @@ function startTransmitter() {
 				var dx = touch.pageX - last.pageX;
 				var dy = touch.pageY - last.pageY;
 
-				send('dm\n[' + dx + ',' + dy + ',' + dt + ']')
+				send('mm\n[' + dx + ',' + dy + ',' + dt + ']')
 				send('force' +  touch.force);
 			}
 
@@ -146,8 +146,6 @@ function startTransmitter() {
 
 	// hello in 50 languages.
 	// css3d mobile deviceorientation threejs
-
-
 	var orientAlpha = 0, orientBeta = 0, orientGamma = 0;
 
 	window.addEventListener('deviceorientation', function(event) {
@@ -163,40 +161,46 @@ function startTransmitter() {
 	// Joystick
 	// Presentation
 
-	// TODO refactor these into adapters / plugins
-	var avg_ax = 0, avg_ay = 0, avg_az = 0;
-	var dv_count = 0;
-	var t = 0.5;
-	var u = 0.5;
-	var THRES = 5;
+	function activateDeviceMotion() {
+		var avg_ax = 0, avg_ay = 0, avg_az = 0;
+		var dv_count = 0;
+		var t = 0.5;
+		var u = 0.5;
+		var THRES = 5;
 
-	function sign(x) {
-		if (x > 0) return 1;
-		if (x < 0) return -1;
-		return 0;
+		function sign(x) {
+			if (x > 0) return 1;
+			if (x < 0) return -1;
+			return 0;
+		}
+
+		// TODO the best way to understand this data is to graph it!
+		// estimated 60fps
+		window.addEventListener('devicemotion', function (event) {
+			var acc = event.acceleration;
+			avg_ax = avg_ax * t + acc.x * u;
+			avg_ay = avg_ay * t + acc.y * u;
+			avg_az = avg_az * t + acc.z * u;
+			dv_count++;
+
+			var s = '';
+			if (Math.abs(avg_ax) > THRES) s += ' x:' + sign(avg_ax);
+			if (Math.abs(avg_ay) > THRES) s += ' y:' + sign(avg_ay);
+			if (Math.abs(avg_az) > THRES) s += ' z:' + sign(avg_az);
+
+			// if (s) send(s);
+			send('dm\n[' + acc.x + ',' + acc.y + ',' + acc.z + ']');
+		});
+
+		setInterval(function() {
+			// send('dv_count' + dv_count);
+			// send('acceleration' + JSON.stringify([ avg_ax, avg_ay, avg_az]));
+			dv_count = 0;
+		}, 100);
 	}
 
-	// TODO the best way to understand this data is to graph it!
-	// estimated 60fps
-	window.addEventListener('devicemotion', function (event) {
-		avg_ax = avg_ax * t + event.acceleration.x * u;
-		avg_ay = avg_ay * t + event.acceleration.y * u;
-		avg_az = avg_az * t + event.acceleration.z * u;
-		dv_count++;
 
-		var s = '';
-		if (Math.abs(avg_ax) > THRES) s += ' x:' + sign(avg_ax);
-		if (Math.abs(avg_ay) > THRES) s += ' y:' + sign(avg_ay);
-		if (Math.abs(avg_az) > THRES) s += ' z:' + sign(avg_az);
-
-		if (s) send(s);
-	});
-
-	setInterval(function() {
-		// send('dv_count' + dv_count);
-		// send('acceleration' + JSON.stringify([ avg_ax, avg_ay, avg_az]));
-		dv_count = 0;
-	}, 100);
+	activateDeviceMotion();
 }
 
 startTransmitter();

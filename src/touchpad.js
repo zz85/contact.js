@@ -87,7 +87,7 @@ class TouchPadSession {
 				}
 				
 				break;
-			case 'dm':
+			case 'mm':
 				this.move(coords[0], coords[1], coords[2]);
 				break;
 			case 'tc':
@@ -101,6 +101,8 @@ class TouchPadSession {
 				delete pings[reply];
 				break;
 			case 'r': // handle receiver resizing
+				break;
+			case 'dm':
 				break;
 			default:
 				// We just dump stuff for logging
