@@ -1,68 +1,108 @@
 "use strict";
 
+function Connection(target, handler) {
+	var ws;
+	var ready = false;
+	var self = this;
+
+	this.open = function() {
+		ws = new WebSocket("ws://" + location.hostname + ":8081/transmitter");
+		window.ws = ws;
+
+		ws.addEventListener('open', function(e) {
+			ready = true;
+			if (handler.onOpen) handler.onOpen(e);
+		});
+
+		ws.addEventListener('error', function (e) {
+			console.log('error', e)
+			if (handler.onError) handler.onError(e);
+		});
+
+		ws.addEventListener('close', function(e) {
+			ready = false;
+			ws = null;
+			console.log('close', e)
+			setTimeout(self.open, 500);
+			if (handler.onClose) handler.onClose(e);
+		});
+
+		ws.addEventListener('message', function(e) {
+			if (handler.onMessage) handler.onMessage(e);
+		});
+
+	};
+
+	this.send = function send(e) {
+		if (ws && ready) ws.send(e);
+	}
+}
+
+
 function startTransmitter() {
-	var ws = new WebSocket("ws://" + location.hostname + ":8081/transmitter");
 
 	var width, height, remoteWidth, remoteHeight;
-	var ready = false;
 
-	ws.addEventListener('open', function(e) {
-		ready = true;
-		sendDimension();
-		send('devicemotion' + typeof(window.DeviceMotionEvent));
-	});
+	var handler = {
+		onOpen: function(e) {
+			sendDimension();
+			send('devicemotion' + typeof(window.DeviceMotionEvent));
+		},
 
-	ws.addEventListener('error', function (e) {
-		console.log('error', e)
-	});
+		onError: function (e) {
+			console.log('error', e)
+		},
 
-	ws.addEventListener('close', function(e) {
-		ready = false;
-		ws = null;
-		console.log('close', e)
-		setTimeout(startTransmitter, 500);
-	});
+		onClose: function(e) {
+			console.log('close', e)
+		},
 
-	ws.addEventListener('message', function(e) {
-		var data = e.data;
+		onMessage: function(e) {
+			var data = e.data;
 
-		var d = data.split('\n');
+			var d = data.split('\n');
 
-		switch (d[0]) {
-			case 'p':
-				ws.send('pp\n'  + d[1]);
-				break;
-			case 'r':
-				// sendDimension();
-				break;
-			case 'rr':
-				var dimensions = JSON.parse(d[1]);
-				remoteWidth = dimensions[0];
-				remoteHeight = dimensions[1];
+			switch (d[0]) {
+				case 'p':
+					ws.send('pp\n'  + d[1]);
+					break;
+				case 'r':
+					// sendDimension();
+					break;
+				case 'rr':
+					var dimensions = JSON.parse(d[1]);
+					remoteWidth = dimensions[0];
+					remoteHeight = dimensions[1];
 
-				var remoteRatio = remoteWidth / remoteHeight;
-				var currentRatio = width / height;
+					var remoteRatio = remoteWidth / remoteHeight;
+					var currentRatio = width / height;
 
-				// if (remoteRatio > currentRatio) {
-				// 	// remote width is wider. // currentHeight should be restricted
-				// } else {
-				// 	//
-				// }
-				send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
-				break;
-			case 'mc':
-				break;
+					// if (remoteRatio > currentRatio) {
+					// 	// remote width is wider. // currentHeight should be restricted
+					// } else {
+					// 	//
+					// }
+					send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
+					break;
+				case 'mc':
 
+					break;
+
+			}
+		},
+		onError: function(e) {
+			console.log('error', e);
 		}
+	}
 
-	});
+	var target = 'ws://' + location.hostname + ':8081/transmitter';
 
-	ws.addEventListener('error', function(e) {
-		console.log('error', e);
-	});
+
+	var connection = new Connection(target, handler);
+	connection.open();
 
 	function send(e) {
-		if (ws && ready) ws.send(e);
+		connection.send(e);
 	}
 
 	function convert(touches) {
@@ -102,7 +142,6 @@ function startTransmitter() {
 
 				send('dm\n[' + dx + ',' + dy + ',' + dt + ']')
 				send('force' +  touch.force);
-				console.log(dx / dt * 1000, dy / dt * 1000);
 			}
 
 			last.pageX = touch.pageX;
