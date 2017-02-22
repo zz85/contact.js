@@ -101,7 +101,7 @@ function startTransmitter() {
 				var dy = touch.pageY - last.pageY;
 
 				send('dm\n[' + dx + ',' + dy + ',' + dt + ']')
-
+				send('force' +  touch.force);
 				console.log(dx / dt * 1000, dy / dt * 1000);
 			}
 
