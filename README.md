@@ -23,7 +23,9 @@ Usage
 --
 
 ###Server
-Make sure you have node.js and ws installed (run `npm install ws`)
+Make sure you have node.js dependenices installed
+(run `npm install`)
+
 ```
 cd contact.js // change to contact.js directory
 node src/server.js // run the server application
@@ -52,7 +54,8 @@ http://localhost:8080/recevier.html
 
 Changelog
 --
-2 Mar 03 - Initial Prototype
+16 Feb 17 - Remote Mouse / Trackpad
+2 Mar 13 - Initial Prototype
 
 
 What is supported

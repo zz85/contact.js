@@ -13,5 +13,6 @@ var CMDS = {
 	'r': 'resized to [w, h]',
 	'mc': 'mouse coordinates [0..1, 0..1]',
 	'mm': 'mouse moving [dx, dy, dt]',
-	'dm': 'device motion [accx, accy, accz]'
+	'dm': 'device motion [accx, accy, accz]',
+	'do': 'device orientation [alpha, beta, gamma]'
 };
