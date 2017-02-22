@@ -8,7 +8,7 @@ function Connection(target, handler) {
 	var self = this;
 
 	this.open = function() {
-		ws = new WebSocket("ws://" + location.hostname + ":8081/transmitter");
+		ws = new WebSocket(target);
 		window.ws = ws;
 
 		ws.addEventListener('open', function(e) {
@@ -96,11 +96,9 @@ function startTransmitter() {
 		onError: function(e) {
 			console.log('error', e);
 		}
-	}
+	};
 
-	var target = 'ws://' + location.hostname + ':8081/transmitter';
-
-
+	var target = 'ws://' + location.hostname + ':8081/touchpad';
 	var connection = new Connection(target, handler);
 	connection.open();
 

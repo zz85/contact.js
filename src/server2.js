@@ -33,7 +33,11 @@ wss.on('connection', function(ws) {
 	var session;
 
 	// TODO turn this to remote control
-	if (info.url == '/transmitter') {
+	if (info.url === '/touchpad') {
+		session = new TouchPadSession(ws);
+		sessions.add(session);
+		displayClients();
+	} else if (info.url == '/transmitter') {
 		transmitter = ws;
 		ws.type = 'transmitter';
 		console.log('Transmitter connected.');
@@ -41,10 +45,6 @@ wss.on('connection', function(ws) {
 			receiver.send('t');
 			receiver.wh && ws.send('rr\n' + receiver.wh);
 		}
-
-		session = new TouchPadSession(ws);
-		sessions.add(session);
-		displayClients();
 	} else if (info.url == '/receiver') {
 		// receiver
 		receiver = ws;
