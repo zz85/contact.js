@@ -20,6 +20,12 @@ var TYPE_RECEIVER = 'receiver',
 
 var TouchPadSession = require('./touchpad');
 
+var sessions = new Set();
+
+function displayClients() {
+	console.log('Active Sessions', sessions.size);
+}
+
 wss.on('connection', function(ws) {
 	var info = ws.upgradeReq;
 	console.log('Received websocket connection to ', info.url );
@@ -37,6 +43,8 @@ wss.on('connection', function(ws) {
 		}
 
 		session = new TouchPadSession(ws);
+		sessions.add(session);
+		displayClients();
 	} else if (info.url == '/receiver') {
 		// receiver
 		receiver = ws;
@@ -56,6 +64,8 @@ wss.on('connection', function(ws) {
 		console.log('socket closed');
 		if (ws.type==TYPE_TRANSMITTER) transmitter = null;
 		else if (ws.type==TYPE_RECEIVER) receiver = null;
+		sessions.delete(session);
+		displayClients();
 	});
 
 	function processMessage(data) {
