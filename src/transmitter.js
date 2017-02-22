@@ -58,10 +58,6 @@ var handler = {
 	}
 };
 
-var target = 'ws://' + location.hostname + ':8081/touchpad';
-var connection = new Connection(target, handler);
-connection.open();
-
 function send(e) {
 	connection.send(e);
 }
@@ -204,3 +200,7 @@ function activateDeviceMotion() {
 
 
 activateDeviceMotion();
+
+var target = 'ws://' + location.hostname + ':8081/touchpad';
+var connection = new Connection(target, handler);
+connection.open();
