@@ -176,6 +176,15 @@ function activateDeviceMotion() {
 	// estimated 60fps
 	window.addEventListener('devicemotion', function (event) {
 		var acc = event.acceleration;
+		acc = event.accelerationIncludingGravity;
+		
+		var alpha = event.rotationRate.alpha;
+		var beta = event.rotationRate.beta;
+		var gamma = event.rotationRate.gamma;
+		var timeInterval = event.interval;
+
+		// send('alpha' + alpha + ' ' + beta + ' ' + gamma + ',' + timeInterval);
+
 		avg_ax = avg_ax * t + acc.x * u;
 		avg_ay = avg_ay * t + acc.y * u;
 		avg_az = avg_az * t + acc.z * u;
@@ -189,7 +198,10 @@ function activateDeviceMotion() {
 		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
 		
 		// if (s) send(s);
-		send('dm\n[' + acc.x + ',' + acc.y + ',' + acc.z + ']');
+		send('dm\n['
+			+ acc.x + ',' + acc.y + ',' + acc.z + ','
+			+ alpha + ',' + beta + ',' + gamma + ','
+			+ timeInterval + ']');
 	});
 
 	setInterval(function() {
@@ -201,7 +213,7 @@ function activateDeviceMotion() {
 }
 
 
-// activateDeviceOrientation();
+activateDeviceOrientation();
 activateDeviceMotion();
 
 var target = 'ws://' + location.hostname + ':8081/touchpad';

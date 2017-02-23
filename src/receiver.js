@@ -17,11 +17,11 @@ function connect(destination) {
 	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
 	ws.addEventListener('open', function(e) {
-		console.log('Connected to ' + ws.URL);
+		console.log('Connected to ' + ws.url);
 		sendDimension();
 	});
 	ws.addEventListener('close', function(e) {
-		console.log('Disconnected from ' + ws.URL + ' (' + e.reason + ')');
+		console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
 		ws = null;
 	});
 
@@ -151,6 +151,19 @@ function onMessage(e) {
 			var dimensions = JSON.parse(d[1]);
 			scaleWidth = dimensions[0];
 			scaleHeight = dimensions[1];
+			break;
+		case 'dm':
+			var dms = JSON.parse(d[1]);
+			if (window.onDm) window.onDm(
+				dms[0], dms[1], dms[2],
+				dms[3], dms[4], dms[5],
+				dms[6]
+				);
+			break;
+		case 'do':
+			var dos = JSON.parse(d[1]);
+			window.dos = dos;
+			if (window.onDo) window.onDo(dos[0], dos[1], dos[2]);
 			break;
 		default:
 			console.log(d);
