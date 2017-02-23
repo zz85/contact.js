@@ -18,6 +18,7 @@ class TouchPadSession {
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
+		this.sy = 0;
 	}
 
 	updateMouse() {
@@ -56,7 +57,7 @@ class TouchPadSession {
 	}
 
 	checkScrollMovement(coords, last) {
-		if (coords.length < 4 || !last || last.length < 4) return;
+		if (coords.length < 4 || !last || last.length < 4) return 0;
 
 		const dx1 = last[0] - coords[0];
 		const dy1 = last[1] - coords[1];
@@ -71,10 +72,11 @@ class TouchPadSession {
 		const vd = d2 - d1;
 
 		// console.log(dx1, dy1, 'diff', vd, vx, vy);
-		if (vy < 3) {
-			this.scrollYspeed = 0.9 * this.scrollYspeed + 0.1 * Math.abs(dy1);
-			robot.scrollMouse(this.scrollYspeed, dy1 < 0 ? 'up' : 'down'); 
+		if (vy < 5) {
+			return dy1;
 		}
+
+		return 0;
 	}
 
 	onMessage(msg) {
@@ -102,7 +104,8 @@ class TouchPadSession {
 				this.down = Date.now();
 				break;
 			case 'tm':
-				this.checkScrollMovement(coords, this.last);
+				this.sy = this.checkScrollMovement(coords, this.last);
+				if (this.sy) this.scrollYspeed = 0.5 * this.scrollYspeed + 0.5 * this.sy;
 
 				if (!this.moved && Date.now() - this.down > 250) {
 					robot.mouseToggle('down');
@@ -164,6 +167,10 @@ class TouchPadSession {
 	}
 
 	onInterval() {
+		this.scrollYspeed *= 0.9;
+		if (Math.abs(this.scrollYspeed) > 0.1)
+			robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
+
 		this.updateMouse();
 		this.send('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
 	}
