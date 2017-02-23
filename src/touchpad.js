@@ -15,6 +15,9 @@ class TouchPadSession {
 
 		this.updateMouse();
 		this.interval = setInterval(() => this.onInterval(), 1000 / 60);
+
+		// TODO fix accelearation
+		this.scrollYspeed = 0;
 	}
 
 	updateMouse() {
@@ -52,6 +55,28 @@ class TouchPadSession {
 		// console.log('move', tx, ty);
 	}
 
+	checkScrollMovement(coords, last) {
+		if (coords.length < 4 || !last || last.length < 4) return;
+
+		const dx1 = last[0] - coords[0];
+		const dy1 = last[1] - coords[1];
+		const dx2 = last[2] - coords[2];
+		const dy2 = last[3] - coords[3];
+
+		const d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+		const d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+
+		const vx = Math.abs(dx2 - dx1);
+		const vy = Math.abs(dy2 - dy1);
+		const vd = d2 - d1;
+
+		// console.log(dx1, dy1, 'diff', vd, vx, vy);
+		if (vy < 3) {
+			this.scrollYspeed = 0.9 * this.scrollYspeed + 0.1 * Math.abs(dy1);
+			robot.scrollMouse(this.scrollYspeed, dy1 < 0 ? 'up' : 'down'); 
+		}
+	}
+
 	onMessage(msg) {
 		var data = msg.split('\n');
 		var cmd = data[0];
@@ -77,10 +102,13 @@ class TouchPadSession {
 				this.down = Date.now();
 				break;
 			case 'tm':
+				this.checkScrollMovement(coords, this.last);
+
 				if (!this.moved && Date.now() - this.down > 250) {
 					robot.mouseToggle('down');
 				}
 				this.moved = true;
+				
 				this.last = coords;
 				break;
 			case 'te':

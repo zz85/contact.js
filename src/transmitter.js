@@ -89,7 +89,7 @@ var last = {};
 
 function setLast(touches) {
 	var touch = touches[0];
-	if (touch) {
+	if (touch && touches.length === 1) {
 		var now = Date.now();
 
 		if (last.time) {
@@ -176,7 +176,7 @@ function activateDeviceMotion() {
 	// estimated 60fps
 	window.addEventListener('devicemotion', function (event) {
 		var acc = event.acceleration;
-		acc = event.accelerationIncludingGravity;
+		// acc = event.accelerationIncludingGravity;
 		
 		var alpha = event.rotationRate.alpha;
 		var beta = event.rotationRate.beta;
