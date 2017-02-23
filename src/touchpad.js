@@ -4,6 +4,10 @@ var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
 
 // Remote TouchPad / Remote Control Session
+// Features
+// - remote mouse control
+// - server mouse reporting to transmitter
+
 class TouchPadSession {
 	constructor(ws, sessions) {
 		this.ws = ws;
@@ -72,6 +76,9 @@ class TouchPadSession {
 		const vd = d2 - d1;
 
 		// console.log(dx1, dy1, 'diff', vd, vx, vy);
+
+		robot.scrollMouse(vx < 5 ? dx1 : 0, vy < 5 ? dy1 : 0);
+
 		if (vy < 5) {
 			return dy1;
 		}
@@ -89,7 +96,6 @@ class TouchPadSession {
 
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
-		// TODO server mouse reporting
 		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
 		// TODO MOUSE recording.
 		// TODO add remote screen sharing?
@@ -168,8 +174,8 @@ class TouchPadSession {
 
 	onInterval() {
 		this.scrollYspeed *= 0.9;
-		if (Math.abs(this.scrollYspeed) > 0.1)
-			robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
+		// if (Math.abs(this.scrollYspeed) > 0.1)
+		// 	robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
 
 		this.updateMouse();
 		this.send('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
