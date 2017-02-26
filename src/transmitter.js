@@ -98,7 +98,6 @@ function setLast(touches) {
 			var dy = touch.pageY - last.pageY;
 
 			send('mm\n[' + dx + ',' + dy + ',' + dt + ']')
-			// send('force' +  touch.force);
 		}
 
 		last.pageX = touch.pageX;
@@ -119,6 +118,19 @@ window.addEventListener('touchmove', function(event) {
 	setLast(touches);
 	send('tm\n' + convert(touches));
 });
+
+
+window.addEventListener('touchforcechange', function(event) {
+	// event.preventDefault();
+	touches = event.touches;
+	// setLast(touches);
+	// send('tf\n' + convert(touches));
+
+	for (let i = 0; i < touches.length; i++) {
+		send('force' + i  + '-' + touches[i].force);
+	}
+});
+
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
