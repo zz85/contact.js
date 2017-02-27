@@ -14,14 +14,14 @@ window.addEventListener('load', function() {
 });
 
 function connect(destination) {
-	ws = new WebSocket("ws://" + destination + ":8080/receiver");
+	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
 	ws.addEventListener('open', function(e) {
-		console.log('Connected to ' + ws.URL);
+		console.log('Connected to ' + ws.url);
 		sendDimension();
 	});
 	ws.addEventListener('close', function(e) {
-		console.log('Disconnected from ' + ws.URL + ' (' + e.reason + ')');
+		console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
 		ws = null;
 	});
 
@@ -109,8 +109,8 @@ function createEvents(a, b) {
 
 		// For simplicity now, fire off to the first target
 		target = uniqueTargets[0];
-		touchEvent.targetTouches = target.touches;
-		touchEvent.currentTarget = target.target;
+		// touchEvent.targetTouches = target.touches;
+		// touchEvent.currentTarget = target.target;
 		target.target.dispatchEvent(touchEvent);
 
 	} else {
@@ -152,6 +152,21 @@ function onMessage(e) {
 			scaleWidth = dimensions[0];
 			scaleHeight = dimensions[1];
 			break;
+		case 'dm':
+			var dms = JSON.parse(d[1]);
+			if (window.onDm) window.onDm(
+				dms[0], dms[1], dms[2],
+				dms[3], dms[4], dms[5],
+				dms[6]
+				);
+			break;
+		case 'do':
+			var dos = JSON.parse(d[1]);
+			window.dos = dos;
+			if (window.onDo) window.onDo(dos[0], dos[1], dos[2]);
+			break;
+		default:
+			console.log(d);
 	}
 }
 

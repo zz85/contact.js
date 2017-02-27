@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<title>Sample Contact.js Transmitter</title>
+	<title>Sample Contact.js TouchPad</title>
 	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<style type="text/css">
 		body { margin: 0px; overflow: hidden; }
 	</style>
 </head>
 <body>
+	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
 	<script type="text/javascript">
 
@@ -22,42 +23,22 @@
 		var touches = [];
 		var touchStart = true;
 
-		// RAF poly fill
-
-		(function() {
-		    var lastTime = 0;
-		    var vendors = ['ms', 'moz', 'webkit', 'o'];
-		    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-		        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-		        window.cancelAnimationFrame =
-		          window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
-		    }
-
-		    if (!window.requestAnimationFrame)
-		        window.requestAnimationFrame = function(callback, element) {
-		            var currTime = new Date().getTime();
-		            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-		            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-		              timeToCall);
-		            lastTime = currTime + timeToCall;
-		            return id;
-		        };
-
-		    if (!window.cancelAnimationFrame)
-		        window.cancelAnimationFrame = function(id) {
-		            clearTimeout(id);
-		        };
-		}());
-
 		function animate() {
 			requestAnimationFrame(animate);
-			ctx.clearRect(0, 0, w, h);
 			update();
 		}
 
 		function update() {
-
+			ctx.save();
 			ctx.clearRect(0, 0, w, h);
+
+			ctx.fillStyle = '#666';			
+			ctx.fillRect(0, 0, w, h);
+			
+			ctx.beginPath();
+			ctx.arc(remoteMouseX * w, remoteMouseY * h, 5, 0, 2 * Math.PI, true);
+			ctx.fillStyle = "rgba(0, 0, 255, 0.2)";
+			ctx.fill();
 
 			if (!touchStart) return;
 
@@ -68,16 +49,17 @@
 				py = touch.pageY;
 
 				ctx.beginPath();
-				ctx.arc(px, py, 20, 0, 2*Math.PI, true);
+				ctx.arc(px, py, 20, 0, 2 * Math.PI, true);
 
-				ctx.fillStyle = "rgba(200, 0, 0, 0.2)";
+				ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
 				ctx.fill();
 
 				ctx.lineWidth = 2;
-				ctx.strokeStyle = "rgba(200, 0, 0, 0.8)";
+				ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
 				ctx.stroke();
 			}
 
+			ctx.restore();
 		}
 
 		function start() {
@@ -105,7 +87,7 @@
 			}, false);
 
 			window.addEventListener('touchmove', function(event) {
-				event.preventDefault();
+				// event.preventDefault();
 				touches = event.touches;
 			}, false);
 

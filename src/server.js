@@ -1,5 +1,5 @@
-var http_port = 8000,
-	websockets_port = 8080,
+var http_port = 8001,
+	websockets_port = 8081,
 	http = require('http'),
 	urlParser = require('url'),
 	fs = require('fs'),
@@ -18,11 +18,24 @@ var receiver, transmitter;
 var TYPE_RECEIVER = 'receiver',
 	TYPE_TRANSMITTER = 'transmitter';
 
+var TouchPadSession = require('./touchpad');
+
+var sessions = new Set();
+
+function displayClients() {
+	console.log('Active Sessions', sessions.size);
+}
+
 wss.on('connection', function(ws) {
 	var info = ws.upgradeReq;
 	console.log('Received websocket connection to ', info.url );
 
-	if (info.url == '/transmitter') {
+	var session;
+
+	// TODO turn this to remote control
+	if (info.url === '/touchpad') {
+		session = new TouchPadSession(ws, sessions);
+	} else if (info.url == '/transmitter') {
 		transmitter = ws;
 		ws.type = 'transmitter';
 		console.log('Transmitter connected.');
@@ -30,8 +43,10 @@ wss.on('connection', function(ws) {
 			receiver.send('t');
 			receiver.wh && ws.send('rr\n' + receiver.wh);
 		}
+		ws.on('message', processMessage);
 	} else if (info.url == '/receiver') {
 		// receiver
+		session = ws;
 		receiver = ws;
 		ws.type = TYPE_RECEIVER;
 		console.log('Receiver connected.');
@@ -39,16 +54,20 @@ wss.on('connection', function(ws) {
 			transmitter.send('t');
 			transmitter.wh && ws.send('rr\n' + transmitter.wh);
 		}
+		ws.on('message', processMessage);
 	}
 
-	ws.send('r');
+	sessions.add(session);
+	displayClients();
 
-	ws.on('message', processMessage);
+	ws.send('r');
 
 	ws.on('close', function(e) {
 		console.log('socket closed');
 		if (ws.type==TYPE_TRANSMITTER) transmitter = null;
 		else if (ws.type==TYPE_RECEIVER) receiver = null;
+		sessions.delete(session);
+		displayClients();
 	});
 
 	function processMessage(data) {
@@ -205,10 +224,17 @@ function handleRequest(request, response) {
 var port = http_port;
 http.createServer(handleRequest).listen(port);
 
-require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
+var hostname = require('os').hostname();
+
+require('dns').lookup(hostname, function (err, addr, fam) {
  	console.log('Running at http server on http://' + addr  + ((port === 80) ? '' : ':') + port + '/');
+	console.log('Running at http server on http://' + hostname  + ((port === 80) ? '' : ':') + port + '/');
  	console.log('Running at contact.js websocket server on http://' + addr  + ((port === 80) ? '' : ':') + websockets_port + '/');
 })
 
 console.log('Simple nodejs server has started...');
 console.log('Base directory at ' + currentDir);
+
+var bonjour = require('bonjour')()
+// advertise an HTTP server on port
+bonjour.publish({ name: 'Contact Server', type: 'http', port: http_port })
