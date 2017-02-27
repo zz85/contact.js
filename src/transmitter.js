@@ -126,9 +126,13 @@ window.addEventListener('touchforcechange', function(event) {
 	// setLast(touches);
 	// send('tf\n' + convert(touches));
 
+	var forces = [];
+
 	for (let i = 0; i < touches.length; i++) {
-		send('force' + i  + '-' + touches[i].force);
+		forces.push(touches[i].force);
 	}
+
+	send('tf\n' + JSON.stringify(forces));
 });
 
 
@@ -152,7 +156,7 @@ function tilt(a, b) {
 // hello in 50 languages.
 // css3d mobile deviceorientation threejs
 
-// TODO 
+// TODO
 // Joystick controller?
 
 function activateDeviceOrientation() {
@@ -189,7 +193,7 @@ function activateDeviceMotion() {
 	window.addEventListener('devicemotion', function (event) {
 		var acc = event.acceleration;
 		// acc = event.accelerationIncludingGravity;
-		
+
 		var alpha = event.rotationRate.alpha;
 		var beta = event.rotationRate.beta;
 		var gamma = event.rotationRate.gamma;
@@ -208,7 +212,7 @@ function activateDeviceMotion() {
 		if (Math.abs(avg_az) > THRES) s += ' z:' + sign(avg_az);
 
 		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
-		
+
 		// if (s) send(s);
 		send('dm\n['
 			+ acc.x + ',' + acc.y + ',' + acc.z + ','

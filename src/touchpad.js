@@ -13,7 +13,7 @@ class TouchPadSession {
 		this.ws = ws;
 		this.sessions = sessions;
 		this.speed = MIN_SPEED;
-		
+
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => this.onClose(e));
 
@@ -42,9 +42,9 @@ class TouchPadSession {
 
 		var dist = Math.sqrt(dx * dx + dy * dy);
 		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, MIN_SPEED), MAX_SPEED);
-		
+
 		var speed = this.speed * 0.8 + currentSpeed * 0.2;
-		
+
 		var vx = dx * speed;
 		var vy = dy * speed;
 		var tx = mouse.x + vx;
@@ -54,7 +54,10 @@ class TouchPadSession {
 		this.mouse.x = Math.min(Math.max(0, tx), this.screenSize.width);
 		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
 
-		robot.moveMouse(this.mouse.x, this.mouse.y);
+		if (this.forceDown) {
+			robot.dragMouse(this.mouse.x, this.mouse.y);
+		}
+		else robot.moveMouse(this.mouse.x, this.mouse.y);
 		// console.log('currentSpeed', currentSpeed, '->', speed);
 		// console.log('vx', vx, vy);
 		// console.log('move', tx, ty);
@@ -77,7 +80,7 @@ class TouchPadSession {
 
 		// console.log(dx1, dy1, 'diff', vd, vx, vy);
 
-		robot.scrollMouse(vx < 5 ? dx1 : 0, vy < 5 ? dy1 : 0);
+		robot.scrollMouse(vx < 5 ? dx1 : 0, vy > 5 ? dy1 : 0);
 
 		if (vy < 5) {
 			return dy1;
@@ -96,11 +99,25 @@ class TouchPadSession {
 
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
-		// TODO force touch https://github.com/stuyam/pressure/tree/master/src/adapters
 		// TODO MOUSE recording.
-		// TODO add remote screen sharing?
+		// TODO add remote screen sharing? screen.capture
 
 		switch (cmd) {
+			case 'tf':
+				// TODO implement me!
+				// Also, touch move should use the latest fingers
+				// console.log('forces', coords);
+				if (!coords.length && this.forceDown) {
+					console.log('^', coords);
+					robot.mouseToggle('up');
+					this.forceDown = false;
+				}
+				else if (coords.length && coords[0] > 0.1 && !this.forceDown) {
+					console.log('v', coords);
+					robot.mouseToggle('down');
+					this.forceDown = true;
+				}
+				break;
 			case 'ts': // receives touch data
 				this.clicked = false;
 				this.moved = false;
@@ -117,7 +134,7 @@ class TouchPadSession {
 					robot.mouseToggle('down');
 				}
 				this.moved = true;
-				
+
 				this.last = coords;
 				break;
 			case 'te':
@@ -127,7 +144,7 @@ class TouchPadSession {
 					robot.mouseToggle('up');
 					this.clicked = true;
 				}
-				
+
 				break;
 			case 'mm':
 				this.move(coords[0], coords[1], coords[2]);
