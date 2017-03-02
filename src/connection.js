@@ -32,4 +32,22 @@ function Connection(target, handler) {
 	this.send = function send(e) {
 		if (ws && ready) ws.send(e);
 	}
+
+
+	this.sendArray = function sendTypes(array) {
+		var cmd = 1;
+		var ts = Date.now();
+
+		var ab = new ArrayBuffer(2 + array.length * 4);
+		var dv = new DataView(ab);
+
+		dv.setUint8(0, cmd);
+		dv.setUint8(1, ts);
+
+		for (var i = 0; i < array.length; i++) {
+			dv.setFloat32(2 + i * 4, array[i]);
+		}
+
+		this.send(ab);
+	}
 }

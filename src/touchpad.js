@@ -1,4 +1,5 @@
 var robot = require('robotjs');
+var wire = require('./wire');
 
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
@@ -7,6 +8,11 @@ var MAX_SPEED = 5;
 // Features
 // - remote mouse control
 // - server mouse reporting to transmitter
+
+function abToType(b, Type) {
+	var array = new Type(b.buffer, b.byteOffset, b.byteLength / Type.BYTES_PER_ELEMENT);
+	return array;
+}
 
 class TouchPadSession {
 	constructor(ws, sessions) {
@@ -89,13 +95,34 @@ class TouchPadSession {
 		return 0;
 	}
 
-	onMessage(msg) {
-		var data = msg.split('\n');
-		var cmd = data[0];
-		var coords = data[1] && JSON.parse(data[1]);
+	onMessage(data) {
+		if (data instanceof Buffer) {
+			var cmdCode = data[0];
+			var cmd = wire.CODES[cmdCode];
 
-		// data
-		// console.log('msg', cmd, coords);
+			if (cmd === undefined) {
+				console.log('invalid cmd code', cmd);
+			}
+
+			var ts = data[1];
+
+			var moo = abToType(data.slice(2).buffer, Float32Array);
+			console.log('meows', cmd, ts, moo);
+			return;
+		}
+		else if (typeof data !== 'string') {
+			console.log('Oops unknown data type', typeof data, data);
+			return;
+		}
+
+		var msg = data.split('\n');
+		var cmd = msg[0];
+		var coords = msg[1] && JSON.parse(msg[1]);
+
+		this.processMessage(cmd, coords, data);
+	}
+
+	processMessage(cmd, coords, msg) {
 
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
@@ -169,7 +196,7 @@ class TouchPadSession {
 				break;
 			default:
 				// We just dump stuff for logging
-				console.log(data);
+				console.log(cmd);
 				break;
 		}
 	}

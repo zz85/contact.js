@@ -20,3 +20,20 @@ var CMDS = {
 	'sc': 'screen capture',
 	'gr': 'generic request',
 };
+
+var KEYS = Object.keys(CMDS);
+
+var WIRE = {}; // cmds to binary code
+var CODES = {}; // wire to command keys
+
+KEYS.forEach((_, i) => {
+	WIRE[_] = i;
+	CODES[i] = _;
+});
+
+if (typeof module === 'object') {
+	module.exports = {
+		CODES,
+		WIRE
+	}
+}

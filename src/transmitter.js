@@ -21,6 +21,14 @@ var handler = {
 	onMessage: function(e) {
 		var data = e.data;
 
+		if (data instanceof Blob) {
+			return;
+		}
+		else if (typeof data !== 'string') {
+			console.log('Oops unknown data type', typeof data);
+			return;
+		}
+
 		var d = data.split('\n');
 
 		switch (d[0]) {
