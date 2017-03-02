@@ -33,7 +33,8 @@ var handler = {
 
 		switch (d[0]) {
 			case 'p':
-				ws.send('pp\n'  + d[1]);
+				// ws.send('pp\n'  + d[1]);
+				sendPack('pp', [ d[1] ])
 				break;
 			case 'r':
 				// sendDimension();
@@ -182,7 +183,9 @@ function activateDeviceOrientation() {
 		// beta = forward roll (-90, 90) (-180, 180 ff)
 		// gamma = -90, 270. (-90, 90 ff)
 
-		send('do\n[' + event.alpha + ',' + event.beta + ',' + event.gamma + ']')
+		sendPack('do', [
+			event.alpha, event.beta, event.gamma
+		]);
 	});
 }
 
@@ -226,10 +229,6 @@ function activateDeviceMotion() {
 		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
 
 		// if (s) send(s);
-		// send('dm\n['
-		// 	+ acc.x + ',' + acc.y + ',' + acc.z + ','
-		// 	+ alpha + ',' + beta + ',' + gamma + ','
-		// 	+ timeInterval + ']');
  
 		sendPack('dm', [
 			acc.x, acc.y, acc.z,

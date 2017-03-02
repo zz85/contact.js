@@ -25,7 +25,11 @@ class TouchPadSession {
 		ws.on('close', e => this.onClose(e));
 
 		this.updateMouse();
+
 		this.interval = setInterval(() => this.onInterval(), 1000 / 60);
+		setInterval( () => {
+			this.send('p\n[' + Date.now() + ']');
+		}, 5000)
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
@@ -111,9 +115,9 @@ class TouchPadSession {
 			var coords = floats.subarray(2);
 
 			// console.log('meows', cmd, ts, coords);
-			if (this._lag) {
+			if (this._lag !== undefined) {
+				if (this._lag % 100 === 0) console.log('lag', Date.now() - ts);
 				this._lag++;
-				if (this._lag % 1000 === 0) console.log('lag', Date.now() - ts);
 			} else {
 				this._lag = 0;
 			}
@@ -190,12 +194,11 @@ class TouchPadSession {
 			case 'tc':
 				break;
 			case 'p': // receives ping
-				ws.send('pp\n'  + data[1]);
+				ws.send('pp\n'  + coords[0]);
 				break;
-			case 'pp': // ping reply
-				var reply = data[1];
-				console.log(ws.type + ': RTT', Date.now() - pings[reply]);
-				delete pings[reply];
+			case 'pp': // received ping reply
+				var reply = coords[0];
+				console.log('RTT', Date.now() - (+reply));
 				break;
 			case 'r': // handle receiver resizing
 				break;
