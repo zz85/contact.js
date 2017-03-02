@@ -30,19 +30,23 @@ var handler = {
 		}
 
 		var d = data.split('\n');
+		var params;
+		try {
+			params = JSON.parse(d[1]);
+		} catch (e) {
+			send('Failed JSON' + d);
+		}
 
 		switch (d[0]) {
 			case 'p':
-				// ws.send('pp\n'  + d[1]);
-				sendPack('pp', [ d[1] ])
+				sendPack('pp', [ params[0] ])
 				break;
 			case 'r':
 				// sendDimension();
 				break;
 			case 'rr':
-				var dimensions = JSON.parse(d[1]);
-				remoteWidth = dimensions[0];
-				remoteHeight = dimensions[1];
+				remoteWidth = params[0];
+				remoteHeight = params[1];
 
 				var remoteRatio = remoteWidth / remoteHeight;
 				var currentRatio = width / height;
@@ -55,9 +59,8 @@ var handler = {
 				send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
 				break;
 			case 'mc':
-				var dimensions = JSON.parse(d[1]);
-				remoteMouseX = dimensions[0];
-				remoteMouseY = dimensions[1];
+				remoteMouseX = params[0];
+				remoteMouseY = params[1];
 				break;
 
 		}
@@ -85,7 +88,7 @@ function convert(touches) {
 		a.push(px, py);
 	}
 
-	return JSON.stringify(a);
+	return a;
 }
 
 function sendDimension() {
@@ -122,14 +125,14 @@ function setLast(touches) {
 window.addEventListener('touchend', function(event) {
 	touches = event.touches;
 	last.time = 0;
-	send('te\n' + convert(touches));
+	sendPack('te', convert(touches));
 });
 
 window.addEventListener('touchmove', function(event) {
 	event.preventDefault();
 	touches = event.touches;
 	setLast(touches);
-	send('tm\n' + convert(touches));
+	sendPack('tm', convert(touches));
 });
 
 
@@ -145,19 +148,19 @@ window.addEventListener('touchforcechange', function(event) {
 		forces.push(touches[i].force);
 	}
 
-	send('tf\n' + JSON.stringify(forces));
+	sendPack('tf', forces);
 });
 
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
 	setLast(touches);
-	send('ts\n' + convert(touches));
+	sendPack('ts', convert(touches));
 });
 
 window.addEventListener('touchcancel', function(event) {
 	touches = event.touches;
-	send('tc\n' + convert(touches));
+	sendPack('tc', convert(touches));
 });
 
 window.addEventListener('resize', sendDimension);

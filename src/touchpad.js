@@ -26,10 +26,12 @@ class TouchPadSession {
 
 		this.updateMouse();
 
-		this.interval = setInterval(() => this.onInterval(), 1000 / 60);
-		setInterval( () => {
-			this.send('p\n[' + Date.now() + ']');
-		}, 5000)
+		this.intervals = [
+			setInterval(() => this.onInterval(), 1000 / 60),
+			setInterval( () => {
+				this.send('p', [Date.now()]);
+			}, 5000)
+		];
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
@@ -116,7 +118,7 @@ class TouchPadSession {
 
 			// console.log('meows', cmd, ts, coords);
 			if (this._lag !== undefined) {
-				if (this._lag % 100 === 0) console.log('lag', Date.now() - ts);
+				if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
 				this._lag++;
 			} else {
 				this._lag = 0;
@@ -194,11 +196,11 @@ class TouchPadSession {
 			case 'tc':
 				break;
 			case 'p': // receives ping
-				ws.send('pp\n'  + coords[0]);
+				this.send('pp', [ coords[0]]);
 				break;
 			case 'pp': // received ping reply
 				var reply = coords[0];
-				console.log('RTT', Date.now() - (+reply));
+				console.log('RTT', Date.now() - reply);
 				break;
 			case 'r': // handle receiver resizing
 				break;
@@ -227,7 +229,11 @@ class TouchPadSession {
 
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);
-		if (this.ws) this.ws.send(payload);
+		if (this.ws) {
+			this.ws.send(payload, (e) => {
+				if (e) console.log('Cannot send message', payload, e);
+			});
+		}
 	}
 
 	onInterval() {
@@ -241,7 +247,10 @@ class TouchPadSession {
 
 	onClose(e) {
 		console.log('TransmitterSession closed', e);
-		clearInterval(this.interval);
+		while (this.intervals.length) {
+			clearInterval(this.intervals.pop());
+		}
+		this.ws = null;
 	}
 }
 

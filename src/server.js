@@ -60,7 +60,7 @@ wss.on('connection', function(ws) {
 	sessions.add(session);
 	displayClients();
 
-	ws.send('r');
+	ws.send('r\n[]');
 
 	ws.on('close', function(e) {
 		console.log('socket closed');
