@@ -34,12 +34,15 @@ function Connection(target, handler) {
 	}
 
 
-	this.sendArray = function sendTypes(array) {
-		var cmd = 1;
-		var ts = Date.now();
+	this.sendPack = function sendPack(cmd, array) {
+		var cmdCode = WIRE[cmd];
+		if (cmdCode === undefined) {
+			console.log('Warning, unknown cmd', cmd);
+		}
 
+		var ts = Date.now();
 		
-		var floats = new Float32Array([cmd, ts].concat(array));
+		var floats = new Float64Array([cmdCode, ts].concat(array));
 		this.send(floats);
 	}
 }

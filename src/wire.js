@@ -26,9 +26,9 @@ var KEYS = Object.keys(CMDS);
 var WIRE = {}; // cmds to binary code
 var CODES = {}; // wire to command keys
 
-KEYS.forEach((_, i) => {
-	WIRE[_] = i;
-	CODES[i] = _;
+KEYS.forEach((key, i) => {
+	WIRE[key] = i;
+	CODES[i] = key;
 });
 
 if (typeof module === 'object') {

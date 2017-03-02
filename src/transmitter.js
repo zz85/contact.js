@@ -70,6 +70,10 @@ function send(e) {
 	connection.send(e);
 }
 
+function sendPack(cmd, array) {
+	connection.sendPack(cmd, array);
+}
+
 function convert(touches) {
 	var i, len, px, py, touch;
 	var a = [];
@@ -222,10 +226,16 @@ function activateDeviceMotion() {
 		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
 
 		// if (s) send(s);
-		send('dm\n['
-			+ acc.x + ',' + acc.y + ',' + acc.z + ','
-			+ alpha + ',' + beta + ',' + gamma + ','
-			+ timeInterval + ']');
+		// send('dm\n['
+		// 	+ acc.x + ',' + acc.y + ',' + acc.z + ','
+		// 	+ alpha + ',' + beta + ',' + gamma + ','
+		// 	+ timeInterval + ']');
+ 
+		sendPack('dm', [
+			acc.x, acc.y, acc.z,
+			alpha, beta, gamma,
+			timeInterval
+		]);
 	});
 
 	setInterval(function() {

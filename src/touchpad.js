@@ -10,7 +10,8 @@ var MAX_SPEED = 5;
 // - server mouse reporting to transmitter
 
 function abToType(b, Type) {
-	var array = new Type(b.buffer, b.byteOffset, b.byteLength / Type.BYTES_PER_ELEMENT);
+	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+	var array = new Type(ab);
 	return array;
 }
 
@@ -97,8 +98,7 @@ class TouchPadSession {
 
 	onMessage(data) {
 		if (data instanceof Buffer) {
-			var floats = abToType(data, Float32Array);
-
+			var floats = abToType(data, Float64Array);
 
 			var cmdCode = floats[0];
 			var cmd = wire.CODES[cmdCode];
@@ -110,8 +110,15 @@ class TouchPadSession {
 			var ts = floats[1];
 			var coords = floats.subarray(2);
 
-			console.log('meows', cmd, ts, coords);
-			console.log('lag', Date.now() - ts);
+			// console.log('meows', cmd, ts, coords);
+			if (this._lag) {
+				this._lag++;
+				if (this._lag % 1000 === 0) console.log('lag', Date.now() - ts);
+			} else {
+				this._lag = 0;
+			}
+
+			this.processMessage(cmd, coords, data);
 			return;
 		}
 		else if (typeof data !== 'string') {
