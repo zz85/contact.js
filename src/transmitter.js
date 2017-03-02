@@ -18,26 +18,8 @@ var handler = {
 		console.log('close', e)
 	},
 
-	onMessage: function(e) {
-		var data = e.data;
-
-		if (data instanceof Blob) {
-			return;
-		}
-		else if (typeof data !== 'string') {
-			console.log('Oops unknown data type', typeof data);
-			return;
-		}
-
-		var d = data.split('\n');
-		var params;
-		try {
-			params = JSON.parse(d[1]);
-		} catch (e) {
-			send('Failed JSON' + d);
-		}
-
-		switch (d[0]) {
+	onMessage: function(cmd, params) {
+		switch (cmd) {
 			case 'p':
 				sendPack('pp', [ params[0] ])
 				break;

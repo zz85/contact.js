@@ -24,9 +24,29 @@ function Connection(target, handler) {
 		});
 
 		ws.addEventListener('message', function(e) {
-			if (handler.onMessage) handler.onMessage(e);
-		});
+			// TODO handle binary streams
+			var data = e.data;
 
+			if (data instanceof Blob) {
+				console.log('do me')
+				return;
+			}
+			else if (typeof data !== 'string') {
+				console.log('Oops unknown data type', typeof data);
+				return;
+			}
+
+			var d = data.split('\n');
+			var cmd = d[0];
+			var params;
+			try {
+				params = JSON.parse(d[1]);
+			} catch (e) {
+				this.send('Failed JSON: ' + d);
+			}
+
+			if (handler.onMessage) handler.onMessage(cmd, params);
+		});
 	};
 
 	this.send = function send(e) {

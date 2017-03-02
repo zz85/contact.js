@@ -14,23 +14,33 @@ window.addEventListener('load', function() {
 });
 
 function connect(destination) {
+
+	var target = 'ws://' + location.hostname + ':8081/receiver';
+	
+	var handler = {
+		onOpen: function(e) {
+			console.log('Connected to ' + ws.url);
+			sendDimension();
+		},
+
+		onClose: function(e) {
+			console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
+			ws = null;
+		},
+
+		onMessage: onMessage,
+
+		onError: function(e) {
+			console.log('error', e);
+			ws = null;
+		}
+
+	};
+
 	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
-	ws.addEventListener('open', function(e) {
-		console.log('Connected to ' + ws.url);
-		sendDimension();
-	});
-	ws.addEventListener('close', function(e) {
-		console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
-		ws = null;
-	});
-
-	ws.addEventListener('message', onMessage);
-
-	ws.addEventListener('error', function(e) {
-		console.log('error', e);
-		ws = null;
-	});
+	var connection = new Connection(target, handler);
+	connection.open();
 }
 
 window.addEventListener('resize', sendDimension, false);
@@ -125,12 +135,8 @@ function createEvents(a, b) {
 var scaleWidth, scaleHeight;
 var width, height;
 
-function onMessage(e) {
-	var data = e.data;
-
-	var d = data.split('\n');
-
-	switch (d[0]) {
+function onMessage(cmd, params) {
+	switch (cmd) {
 		case 'p':
 			ws.send('pp\n'  + d[1]);
 			break;
@@ -144,16 +150,16 @@ function onMessage(e) {
 		case 'tm':
 		case 'te':
 		case 'tc':
-			var a = JSON.parse(d[1]);
+			var a = params;
 			createEvents(a, d[0]);
 			break;
 		case 'rr':
-			var dimensions = JSON.parse(d[1]);
+			var dimensions = params;
 			scaleWidth = dimensions[0];
 			scaleHeight = dimensions[1];
 			break;
 		case 'dm':
-			var dms = JSON.parse(d[1]);
+			var dms = params;
 			if (window.onDm) window.onDm(
 				dms[0], dms[1], dms[2],
 				dms[3], dms[4], dms[5],
@@ -161,7 +167,7 @@ function onMessage(e) {
 				);
 			break;
 		case 'do':
-			var dos = JSON.parse(d[1]);
+			var dos = params;
 			window.dos = dos;
 			if (window.onDo) window.onDo(dos[0], dos[1], dos[2]);
 			break;
