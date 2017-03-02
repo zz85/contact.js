@@ -29,9 +29,18 @@ class TouchPadSession {
 		this.intervals = [
 			setInterval(() => this.onInterval(), 1000 / 60),
 			setInterval( () => {
-				this.send('p', [Date.now()]);
+				this.sendPack('p', [Date.now()]);
 			}, 5000)
 		];
+
+		setTimeout(() => {
+			var screen = robot.captureScreen();
+
+			// TODO
+			// new ArrayBuffer(screen.image.buffer.byteLength)
+
+			this.ws.send(screen.image)
+		}, 5000);
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
@@ -196,7 +205,7 @@ class TouchPadSession {
 			case 'tc':
 				break;
 			case 'p': // receives ping
-				this.send('pp', [ coords[0]]);
+				this.sendPack('pp', [ coords[0]]);
 				break;
 			case 'pp': // received ping reply
 				var reply = coords[0];
@@ -229,11 +238,27 @@ class TouchPadSession {
 
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);
+		this._send(payload);
+	}
+
+	_send(payload) {
 		if (this.ws) {
 			this.ws.send(payload, (e) => {
 				if (e) console.log('Cannot send message', payload, e);
 			});
 		}
+	}
+
+	sendPack(cmd, array) {
+		var cmdCode = wire.WIRE[cmd];
+		if (cmdCode === undefined) {
+			console.log('Warning, unknown cmd', cmd);
+		}
+
+		var ts = Date.now();
+
+		var floats = new Float64Array([cmdCode, ts].concat(array));
+		this._send(floats);
 	}
 
 	onInterval() {
@@ -242,7 +267,7 @@ class TouchPadSession {
 		// 	robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
 
 		this.updateMouse();
-		this.send('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
+		this.sendPack('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
 	}
 
 	onClose(e) {

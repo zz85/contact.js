@@ -18,6 +18,7 @@ var CMDS = {
 	'do': 'device orientation [alpha, beta, gamma]',
 	// TOOD
 	'sc': 'screen capture',
+	'si': 'screen image',
 	'gr': 'generic request',
 };
 

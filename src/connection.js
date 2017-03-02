@@ -25,14 +25,16 @@ function Connection(target, handler) {
 		});
 
 		function handleFloats(data) {
-			var floats = new Float64Array(data);
+			var dv = new DataView(data);
+			var cmdCode = dv.getFloat64(0, true);
 
-			var cmdCode = floats[0];
 			var cmd = CODES[cmdCode];
 
 			if (cmd === undefined) {
 				console.log('invalid cmd code', cmd);
 			}
+
+			var floats = new Float64Array(data);
 
 			var ts = floats[1];
 			var coords = floats.subarray(2);
@@ -54,22 +56,22 @@ function Connection(target, handler) {
 				var reader = new FileReader();
 				reader.addEventListener('loadend', function() {
 					// reader.result contains the contents of blob as a typed array
-					var floats = new Float64Array(reader.result);
-					handleFloats(floats);
+					handleFloats(reader.result);
 				});
 				reader.readAsArrayBuffer(data);
 
 				return;
 			}
 			else if (data instanceof ArrayBuffer) {
-				handleFloats(new Float64Array(data));
-				console.log(Date.now() - b);
+				handleFloats(data);
+				// console.log(Date.now() - b);
 				return;
 			}
 			else if (typeof data !== 'string') {
 				console.log('Oops unknown data type', typeof data);
 				return;
 			}
+			// console.log('strs', data);
 
 			var d = data.split('\n');
 			var cmd = d[0];
