@@ -6,6 +6,7 @@ function Connection(target, handler) {
 	this.open = function() {
 		ws = new WebSocket(target);
 		window.ws = ws;
+		ws.binaryType = 'arraybuffer';
 
 		ws.addEventListener('open', function(e) {
 			ready = true;
@@ -23,32 +24,46 @@ function Connection(target, handler) {
 			if (handler.onClose) handler.onClose(e);
 		});
 
+		function handleFloats(data) {
+			var floats = new Float64Array(data);
+
+			var cmdCode = floats[0];
+			var cmd = CODES[cmdCode];
+
+			if (cmd === undefined) {
+				console.log('invalid cmd code', cmd);
+			}
+
+			var ts = floats[1];
+			var coords = floats.subarray(2);
+			
+			if (handler.onMessage) handler.onMessage(cmd, coords);
+		}
+
 		ws.addEventListener('message', function(e) {
 			// TODO handle binary streams
 			var data = e.data;
 
+			var b = Date.now();
+
 			if (data instanceof Blob) {
-				b = data;
+				console.log('blob!');
+				return;
+
 				// console.log('do me', data);
 				var reader = new FileReader();
 				reader.addEventListener('loadend', function() {
 					// reader.result contains the contents of blob as a typed array
 					var floats = new Float64Array(reader.result);
-
-					var cmdCode = floats[0];
-					var cmd = CODES[cmdCode];
-
-					if (cmd === undefined) {
-						console.log('invalid cmd code', cmd);
-					}
-
-					var ts = floats[1];
-					var coords = floats.subarray(2);
-
-					if (handler.onMessage) handler.onMessage(cmd, coords);
+					handleFloats(floats);
 				});
 				reader.readAsArrayBuffer(data);
 
+				return;
+			}
+			else if (data instanceof ArrayBuffer) {
+				handleFloats(new Float64Array(data));
+				console.log(Date.now() - b);
 				return;
 			}
 			else if (typeof data !== 'string') {
