@@ -28,7 +28,27 @@ function Connection(target, handler) {
 			var data = e.data;
 
 			if (data instanceof Blob) {
-				console.log('do me')
+				b = data;
+				// console.log('do me', data);
+				var reader = new FileReader();
+				reader.addEventListener('loadend', function() {
+					// reader.result contains the contents of blob as a typed array
+					var floats = new Float64Array(reader.result);
+
+					var cmdCode = floats[0];
+					var cmd = CODES[cmdCode];
+
+					if (cmd === undefined) {
+						console.log('invalid cmd code', cmd);
+					}
+
+					var ts = floats[1];
+					var coords = floats.subarray(2);
+
+					if (handler.onMessage) handler.onMessage(cmd, coords);
+				});
+				reader.readAsArrayBuffer(data);
+
 				return;
 			}
 			else if (typeof data !== 'string') {
