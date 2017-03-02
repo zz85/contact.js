@@ -97,17 +97,21 @@ class TouchPadSession {
 
 	onMessage(data) {
 		if (data instanceof Buffer) {
-			var cmdCode = data[0];
+			var floats = abToType(data, Float32Array);
+
+
+			var cmdCode = floats[0];
 			var cmd = wire.CODES[cmdCode];
 
 			if (cmd === undefined) {
 				console.log('invalid cmd code', cmd);
 			}
 
-			var ts = data[1];
+			var ts = floats[1];
+			var coords = floats.subarray(2);
 
-			var moo = abToType(data.slice(2).buffer, Float32Array);
-			console.log('meows', cmd, ts, moo);
+			console.log('meows', cmd, ts, coords);
+			console.log('lag', Date.now() - ts);
 			return;
 		}
 		else if (typeof data !== 'string') {
