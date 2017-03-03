@@ -28,23 +28,31 @@ class TouchPadSession {
 
 		this.intervals = [
 			setInterval(() => this.onInterval(), 1000 / 60),
-			setInterval( () => {
+			setInterval(() => {
 				this.sendPack('p', [Date.now()]);
 			}, 5000)
 		];
 
-		setTimeout(() => {
-			var screen = robot.captureScreen();
-
-			// TODO
-			// new ArrayBuffer(screen.image.buffer.byteLength)
-
-			this.ws.send(screen.image)
-		}, 5000);
-
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
 		this.sy = 0;
+	}
+
+	sendScreen() {
+		var screen = robot.captureScreen();
+		var ts = Date.now();
+
+		var imgBytes = screen.width * screen.height * screen.bytesPerPixel;
+		var buffer = new ArrayBuffer(20 + imgBytes);
+		var header = new Float64Array(buffer, 0, 2);
+		header.set([wire.WIRE['si'], ts]);
+		var screenView = new Uint16Array(buffer, 16, 2);
+		screenView.set([ screen.width, screen.height ]);
+
+		var imgView = new Uint8Array(buffer, 20, imgBytes);
+		imgView.set(screen.image);
+		
+		this.sendRaw(buffer);
 	}
 
 	updateMouse() {
@@ -149,7 +157,6 @@ class TouchPadSession {
 	}
 
 	processMessage(cmd, coords, msg) {
-
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
 		// TODO MOUSE recording.
@@ -204,6 +211,9 @@ class TouchPadSession {
 				break;
 			case 'tc':
 				break;
+			case 'sc':
+				this.sendScreen();
+				break;
 			case 'p': // receives ping
 				this.sendPack('pp', [ coords[0]]);
 				break;
@@ -238,10 +248,10 @@ class TouchPadSession {
 
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);
-		this._send(payload);
+		this.sendRaw(payload);
 	}
 
-	_send(payload) {
+	sendRaw(payload) {
 		if (this.ws) {
 			this.ws.send(payload, (e) => {
 				if (e) console.log('Cannot send message', payload, e);
@@ -258,7 +268,7 @@ class TouchPadSession {
 		var ts = Date.now();
 
 		var floats = new Float64Array([cmdCode, ts].concat(array));
-		this._send(floats);
+		this.sendRaw(floats);
 	}
 
 	onInterval() {

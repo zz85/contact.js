@@ -60,8 +60,18 @@
 				ctx.stroke();
 			}
 
+			if (window.ss_canvas) {
+				ctx.drawImage(ss_canvas, 0, 0, canvas.width, canvas.height);
+			}
+
 			ctx.restore();
 		}
+
+		function getScreen() {
+			connection.sendPack('sc');
+		}
+
+		setInterval(getScreen, 5000);
 
 		function start() {
 
