@@ -71,6 +71,9 @@ wss.on('connection', function(ws) {
 	});
 
 	function processMessage(data) {
+		// console.log('data', data);
+		// TODO - unify binary protocol for all clients
+		// TODO - unify clients and use traits / ECS.
 		var d = data.split('\n');
 		switch (d[0]) {
 			case 'ts': // receives touch data

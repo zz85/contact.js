@@ -47,6 +47,36 @@ var handler = {
 
 		}
 	},
+
+
+	handleRaw: function handleRaw(cmd, dv, buffer) {
+		if (cmd === 'si') {
+			var ts = dv.getFloat64(8, true);
+			var screenView = new Uint16Array(buffer, 16, 2);
+			var imgBytes = screenView[0] * screenView[1] * 4;
+			var imgView = new Uint8ClampedArray(buffer, 20, imgBytes);
+
+			console.log('image!', Date.now() - ts);
+			console.log('size', screenView);
+
+			if (!window.ssctx) {
+				var canvas = document.createElement('canvas');
+				canvas.width = screenView[0];
+				canvas.height = screenView[1];
+				canvas.style.cssText = 'display: none; position: absolute; top: 0; left: 0; z-index: 10;';
+				document.body.appendChild(canvas);
+				var ctx = canvas.getContext('2d');
+				window.ssctx = ctx;
+				window.ss_canvas = canvas;
+			}
+
+			var imgData = new ImageData(imgView, screenView[0], screenView[1]);
+			ssctx.putImageData(imgData, 0, 0);
+			return true;
+		}
+	},
+
+
 	onError: function(e) {
 		console.log('error', e);
 	}
@@ -230,10 +260,15 @@ function activateDeviceMotion() {
 	}, 100);
 }
 
-
 activateDeviceOrientation();
 activateDeviceMotion();
 
 var target = 'ws://' + location.hostname + ':8081/touchpad';
 var connection = new Connection(target, handler);
 connection.open();
+
+// function getScreen() {
+// 	connection.sendPack('sc');
+// }
+
+// setInterval(getScreen, 5000);

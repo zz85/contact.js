@@ -33,32 +33,11 @@ function Connection(target, handler) {
 
 			if (cmd === undefined) {
 				console.log('invalid cmd code', cmd);
-			}
-			else if (cmd === 'si') {
-				var ts = dv.getFloat64(8, true);
-				var screenView = new Uint16Array(buffer, 16, 2);
-				var imgBytes = screenView[0] * screenView[1] * 4;
-				var imgView = new Uint8ClampedArray(buffer, 20, imgBytes);
-
-				console.log('image!', Date.now() - ts);
-				console.log('size', screenView);
-
-				if (!window.ssctx) {
-					var canvas = document.createElement('canvas');
-					canvas.width = screenView[0];
-					canvas.height = screenView[1];
-					canvas.style.cssText = 'display: none; position: absolute; top: 0; left: 0; z-index: 10;';
-					document.body.appendChild(canvas);
-					var ctx = canvas.getContext('2d');
-					window.ssctx = ctx;
-					window.ss_canvas = canvas;
-				}
-
-				var imgData = new ImageData(imgView, screenView[0], screenView[1]);
-				ssctx.putImageData(imgData, 0, 0);
 				return;
+			} else {
+				if (handler.handleRaw && handler.handleRaw(cmd, dv, buffer)) return;
 			}
-
+			
 			var floats = new Float64Array(buffer);
 
 			var ts = floats[1];
@@ -112,6 +91,7 @@ function Connection(target, handler) {
 	};
 
 	this.send = function send(e) {
+		// TODO check ws.bufferedAmount?
 		if (ws && ready) ws.send(e);
 	}
 

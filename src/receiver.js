@@ -57,7 +57,6 @@ var tmaps = {
 };
 
 function createEvents(a, b) {
-
 	var x, y, i, j, len, target;
 	var touches = [];
 	var targets = [];
