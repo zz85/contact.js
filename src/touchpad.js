@@ -224,9 +224,8 @@ class TouchPadSession {
 			case 'r': // handle receiver resizing
 				break;
 			case 'dm':
-				this.sendToReceivers(msg);
-				break;
 			case 'do':
+			case 'so':
 				this.sendToReceivers(msg);
 				break;
 			default:

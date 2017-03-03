@@ -168,7 +168,11 @@ function onMessage(cmd, params) {
 		case 'do':
 			var dos = params;
 			window.dos = dos;
-			if (window.onDo) window.onDo(dos[0], dos[1], dos[2]);
+			if (window.onDo) window.onDo(dos[0], dos[1], dos[2], dos[3], dos[4]);
+			break;
+		case 'so':
+			if (window.onOrientation)
+				window.onOrientation(params[0]);
 			break;
 		default:
 			console.log(d);

@@ -187,21 +187,34 @@ function tilt(a, b) {
 // TODO
 // Joystick controller?
 
-function activateDeviceOrientation() {
-	var orientAlpha = 0, orientBeta = 0, orientGamma = 0;
+// sensors
+// 1. touch screen + force
+// 2. video + audio
+// 3. orientation
+// 4. gps - location
+// not available
+// - battery, vibration, ambient light
 
+function activateDeviceOrientation() {
 	window.addEventListener('deviceorientation', function(event) {
-		orientAlpha = event.alpha;
-		orientBeta = event.beta;
-		orientGamma = event.gamma;
-		// alpha = compass (0, 360)
-		// beta = forward roll (-90, 90) (-180, 180 ff)
-		// gamma = -90, 270. (-90, 90 ff)
+		// if (Math.random() < 0.01) send('Absolute:' + event.absolute);
 
 		sendPack('do', [
-			event.alpha, event.beta, event.gamma
+			event.alpha, event.beta, event.gamma,
+			event.webkitCompassHeading || 0,
+			window.orientation || 0
 		]);
 	});
+
+
+	window.addEventListener('orientationchange', function(e) {
+		// send('screen.orientation.angle' + window.orientation);
+		sendPack('so', [
+			window.orientation
+		]);
+	});
+
+	// window.addEventListener( 'compassneedscalibration', );
 }
 
 function activateDeviceMotion() {
@@ -218,7 +231,6 @@ function activateDeviceMotion() {
 		return 0;
 	}
 
-	// TODO the best way to understand this data is to graph it!
 	// estimated 60fps
 	window.addEventListener('devicemotion', function (event) {
 		var acc = event.acceleration;

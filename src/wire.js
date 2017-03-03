@@ -16,9 +16,10 @@ var CMDS = {
 	'mm': 'mouse moving [dx, dy, dt]',
 	'dm': 'device motion [accx, accy, accz]',
 	'do': 'device orientation [alpha, beta, gamma]',
-	// TOOD
+	'so': 'screen orientation [-90, 0, 90]',
 	'sc': 'screen capture',
 	'si': 'screen image',
+	// TODO
 	'gr': 'generic request',
 };
 

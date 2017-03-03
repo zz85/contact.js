@@ -38,24 +38,37 @@
         var dm_b = new Counter();
         var dm_g = new Counter();
 
-        var do_a = new Counter();
-        var do_b = new Counter();
-        var do_g = new Counter();
+        var do_a = new Counter(); // 0 to 360 Z axis
+        var do_b = new Counter(); // -180 to 180 X axis
+        var do_g = new Counter(); // -90 to 90 Y Axis
 
+        var dm_amp = new Counter();
+        var so = new Counter();
+        var orient = 0;
+
+        function onOrientation(o) {
+            orient = o;
+        }
 
         function onDm(x, y, z, a, b, g) {
             dm_x.push(x);
             dm_y.push(y);
             dm_z.push(z);
+
             dm_a.push(a);
             dm_b.push(b);
             dm_g.push(g);
+
+            dm_amp.push(Math.sqrt(x * x + y * y + z * z));
         }
 
-        function onDo(a, b, g) {
+        function onDo(a, b, g, _, o) {
             do_a.push(a);
             do_b.push(b);
             do_g.push(g);
+
+            // so.push(orient);
+            so.push(o);
         }
 
         function render() {
@@ -64,17 +77,20 @@
             ctx.translate(10, 0);
             ctx.font = '34px monospace';
             
-            renderUnit(dm_x);
-            renderUnit(dm_y);
-            renderUnit(dm_z);
+            renderUnit(dm_x, 0.5);
+            renderUnit(dm_y, 0.5);
+            renderUnit(dm_z, 0.5);
 
-            renderUnit(dm_a, 90);
-            renderUnit(dm_b, 90);
-            renderUnit(dm_g, 90);
+            renderUnit(dm_a, 30);
+            renderUnit(dm_b, 30);
+            renderUnit(dm_g, 30);
 
             renderUnit(do_a, 15);
             renderUnit(do_b, 15);
             renderUnit(do_g, 15);
+            renderUnit(so, 5);
+
+            renderUnit(dm_amp, -0.25);
 
             ctx.restore();
 
