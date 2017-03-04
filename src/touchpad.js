@@ -16,10 +16,12 @@ function abToType(b, Type) {
 }
 
 class TouchPadSession {
-	constructor(ws, sessions) {
+	constructor(ws, sessions, roles) {
 		this.ws = ws;
 		this.sessions = sessions;
-		this.speed = MIN_SPEED;
+		this.roles = new Set(roles);
+
+		this.speed = MIN_SPEED;		
 
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => this.onClose(e));
@@ -236,14 +238,18 @@ class TouchPadSession {
 	}
 
 	sendToReceivers(msg) {
-		for (let session of this.sessions) {
-			if (session instanceof TouchPadSession) {
+		sendToRole(msg, 'receiver');
+	}
 
-			} else {
+	sendToRole(msg, role) {
+		for (let session of this.sessions) {
+			if (session.roles.has(role)) {
 				session.send(msg);
 			}
 		}
 	}
+
+
 
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);

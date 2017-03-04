@@ -39,7 +39,7 @@ function connect(destination) {
 
 	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
-	var connection = new Connection(target, handler);
+	window.connection = new Connection(target, handler);
 	connection.open();
 }
 

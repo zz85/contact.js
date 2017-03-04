@@ -2,14 +2,17 @@ function Connection(target, handler) {
 	var ws;
 	var ready = false;
 	var self = this;
+	self.status = '';
 
 	this.open = function() {
 		ws = new WebSocket(target);
 		window.ws = ws;
 		ws.binaryType = 'arraybuffer';
+		self.status = 'reconnecting';
 
 		ws.addEventListener('open', function(e) {
 			ready = true;
+			self.status = 'connected';
 			if (handler.onOpen) handler.onOpen(e);
 		});
 
@@ -20,6 +23,7 @@ function Connection(target, handler) {
 		ws.addEventListener('close', function(e) {
 			ready = false;
 			ws = null;
+			self.status = 'disconnected';
 			if (handler.onClose) handler.onClose(e);
 
 			setTimeout(self.open, 500);

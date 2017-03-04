@@ -275,7 +275,8 @@ function activateDeviceMotion() {
 activateDeviceOrientation();
 activateDeviceMotion();
 
-var target = 'ws://' + location.hostname + ':8081/touchpad';
+// var target = 'ws://' + location.hostname + ':8081/touchpad';
+var target = 'ws://' + location.hostname + ':8081/transmitter';
 var connection = new Connection(target, handler);
 connection.open();
 
