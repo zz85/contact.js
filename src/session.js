@@ -114,7 +114,6 @@ class Session {
 			case 'tm':
 			case 'te':
 			case 'tc':
-				console.log('send to receivers touch');
 				this.sendToReceivers(data);
 				break;
 			case 'p': // receives ping
@@ -139,7 +138,7 @@ class Session {
 				break;
 			default:
 				// We just dump stuff for logging
-				console.log(data);
+				// console.log(data);
 				break;
 		}
 

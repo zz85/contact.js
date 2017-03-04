@@ -75,10 +75,7 @@ function createEvents(a, b) {
 		targets.push(target);
 	}
 
-	console.log(touches[0], b);
-
 	for (i=0;i<len;i++) {
-
 		var target = targets[i];
 		var count = 0;
 		var duplicated = false;
@@ -136,7 +133,7 @@ var width = window.innerWidth,
 	height = window.innerHeight;
 
 function onMessage(cmd, params) {
-	console.log('received', cmd, params);
+	// console.log('received', cmd, params);
 	switch (cmd) {
 		case 'p':
 			connection.sendPack('pp', params);
@@ -146,7 +143,6 @@ function onMessage(cmd, params) {
 			break;
 		case 'r':
 			var dimensions = params;
-			console.log('RECEIVE DIMENESIONS', params);
 			scaleWidth = dimensions[0];
 			scaleHeight = dimensions[1];
 			break;
@@ -154,7 +150,6 @@ function onMessage(cmd, params) {
 		case 'tm':
 		case 'te':
 		case 'tc':
-			console.log('parmas', params, cmd);
 			createEvents(params, cmd);
 			break;
 		case 'dm':
