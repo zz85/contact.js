@@ -4,27 +4,26 @@ var contact = window.contact || {}; // Namespace
 
 var ws;
 
-contact.Recevier = function(destination) {
+contact.Receiver = function(destination) {
 	connect(destination);
 }
 
 
 window.addEventListener('load', function() {
-	new contact.Recevier(location.hostname);
+	new contact.Receiver(location.hostname);
 });
 
 function connect(destination) {
-
-	var target = 'ws://' + location.hostname + ':8081/receiver';
+	var target = 'ws://' + destination + ':8081/receiver';
 	
 	var handler = {
 		onOpen: function(e) {
-			console.log('Connected to ' + ws.url);
+			console.log('Connected to ' + target);
 			sendDimension();
 		},
 
 		onClose: function(e) {
-			console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
+			console.log('Disconnected from ' + target + ' (' + e.reason + ')');
 			ws = null;
 		},
 
@@ -36,8 +35,6 @@ function connect(destination) {
 		}
 
 	};
-
-	ws = new WebSocket("ws://" + destination + ":8081/receiver");
 
 	window.connection = new Connection(target, handler);
 	connection.open();
@@ -77,6 +74,8 @@ function createEvents(a, b) {
 		target = document.elementFromPoint(x, y);
 		targets.push(target);
 	}
+
+	console.log(touches[0], b);
 
 	for (i=0;i<len;i++) {
 
@@ -120,7 +119,8 @@ function createEvents(a, b) {
 		target = uniqueTargets[0];
 		// touchEvent.targetTouches = target.touches;
 		// touchEvent.currentTarget = target.target;
-		target.target.dispatchEvent(touchEvent);
+		if (target.target)
+			target.target.dispatchEvent(touchEvent);
 
 	} else {
 		window.dispatchEvent(touchEvent);
@@ -131,31 +131,31 @@ function createEvents(a, b) {
 }
 
 
-var scaleWidth, scaleHeight;
-var width, height;
+var scaleWidth = 1, scaleHeight = 1;
+var width = window.innerWidth,
+	height = window.innerHeight;
 
 function onMessage(cmd, params) {
+	console.log('received', cmd, params);
 	switch (cmd) {
 		case 'p':
-			ws.send('pp\n'  + d[1]);
+			connection.sendPack('pp', params);
 			break;
 		case 't':
 			console.log('transmitter is ready');
 			break;
 		case 'r':
-			// sendDimension();
+			var dimensions = params;
+			console.log('RECEIVE DIMENESIONS', params);
+			scaleWidth = dimensions[0];
+			scaleHeight = dimensions[1];
 			break;
 		case 'ts':
 		case 'tm':
 		case 'te':
 		case 'tc':
-			var a = params;
-			createEvents(a, d[0]);
-			break;
-		case 'rr':
-			var dimensions = params;
-			scaleWidth = dimensions[0];
-			scaleHeight = dimensions[1];
+			console.log('parmas', params, cmd);
+			createEvents(params, cmd);
 			break;
 		case 'dm':
 			var dms = params;
@@ -175,7 +175,7 @@ function onMessage(cmd, params) {
 				window.onOrientation(params[0]);
 			break;
 		default:
-			console.log(d);
+			console.log(cmd, params);
 	}
 }
 
@@ -184,8 +184,6 @@ function send(e) {
 }
 
 function sendDimension() {
-	width = window.innerWidth;
-	height = window.innerHeight;
 	send('r\n['+width+','+height+']');
 }
 

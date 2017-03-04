@@ -23,23 +23,20 @@ var handler = {
 			case 'p':
 				sendPack('pp', [ params[0] ])
 				break;
-			case 'r':
-				// sendDimension();
-				break;
-			case 'rr':
-				remoteWidth = params[0];
-				remoteHeight = params[1];
+			// case 'r':
+			// 	remoteWidth = params[0];
+			// 	remoteHeight = params[1];
 
-				var remoteRatio = remoteWidth / remoteHeight;
-				var currentRatio = width / height;
+			// 	var remoteRatio = remoteWidth / remoteHeight;
+			// 	var currentRatio = width / height;
 
-				// if (remoteRatio > currentRatio) {
-				// 	// remote width is wider. // currentHeight should be restricted
-				// } else {
-				// 	//
-				// }
-				send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
-				break;
+			// 	// if (remoteRatio > currentRatio) {
+			// 	// 	// remote width is wider. // currentHeight should be restricted
+			// 	// } else {
+			// 	// 	//
+			// 	// }
+			// 	// send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
+			// 	break;
 			case 'mc':
 				remoteMouseX = params[0];
 				remoteMouseY = params[1];

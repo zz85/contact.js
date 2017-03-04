@@ -108,6 +108,7 @@
 			}, false);
 
 			window.addEventListener('touchmove', function(event) {
+				console.log('test', event.touches)
 				event.preventDefault();
 				touches = event.touches;
 				// console.log('touchmove', event);
