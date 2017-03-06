@@ -158,7 +158,7 @@ class TouchPadSession {
 		this.processMessage(cmd, coords, data);
 	}
 
-	processMessage(cmd, coords, msg) {
+	processMessage(cmd, coords, data) {
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
 		// TODO MOUSE recording.
@@ -228,7 +228,7 @@ class TouchPadSession {
 			case 'dm':
 			case 'do':
 			case 'so':
-				this.sendToReceivers(msg);
+				this.sendToReceivers(data);
 				break;
 			default:
 				// We just dump stuff for logging
@@ -238,13 +238,13 @@ class TouchPadSession {
 	}
 
 	sendToReceivers(msg) {
-		sendToRole(msg, 'receiver');
+		this.sendToRole(msg, 'receiver');
 	}
 
 	sendToRole(msg, role) {
 		for (let session of this.sessions) {
 			if (session.roles.has(role)) {
-				session.send(msg);
+				session.sendRaw(msg);
 			}
 		}
 	}

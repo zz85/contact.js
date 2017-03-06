@@ -27,7 +27,7 @@
 
         Counter.prototype.push = function(d) {
             this.data.push(d);
-            if (this.data.length > 800) this.data.shift();
+            if (this.data.length > innerWidth) this.data.shift();
         }
 
         var dm_x = new Counter();

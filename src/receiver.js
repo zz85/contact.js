@@ -2,12 +2,9 @@
 
 var contact = window.contact || {}; // Namespace
 
-var ws;
-
 contact.Receiver = function(destination) {
 	connect(destination);
 }
-
 
 window.addEventListener('load', function() {
 	new contact.Receiver(location.hostname);
@@ -24,14 +21,12 @@ function connect(destination) {
 
 		onClose: function(e) {
 			console.log('Disconnected from ' + target + ' (' + e.reason + ')');
-			ws = null;
 		},
 
 		onMessage: onMessage,
 
 		onError: function(e) {
 			console.log('error', e);
-			ws = null;
 		}
 
 	};
@@ -59,9 +54,9 @@ function createEvents(a, b) {
 	var targets = [];
 	var uniqueTargets = [];
 
-	for (i=0, len = a.length / 2;i<len;i++) {
-		x = a[i * 2];
-		y = a[i * 2 + 1];
+	for (i=0, len = a.length; i<len; i+=2) {
+		x = a[i];
+		y = a[i + 1];
 
 		x = x / scaleWidth * width;
 		y = y / scaleHeight * height;
@@ -175,7 +170,7 @@ function onMessage(cmd, params) {
 }
 
 function send(e) {
-	if (ws) ws.send(e);
+	connection.send(e);
 }
 
 function sendDimension() {
