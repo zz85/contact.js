@@ -1,4 +1,5 @@
 var robot = require('robotjs');
+var wire = require('./wire');
 
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
@@ -8,21 +9,52 @@ var MAX_SPEED = 5;
 // - remote mouse control
 // - server mouse reporting to transmitter
 
+function abToType(b, Type) {
+	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+	var array = new Type(ab);
+	return array;
+}
+
 class TouchPadSession {
-	constructor(ws, sessions) {
+	constructor(ws, sessions, roles) {
 		this.ws = ws;
 		this.sessions = sessions;
-		this.speed = MIN_SPEED;
+		this.roles = new Set(roles);
+
+		this.speed = MIN_SPEED;		
 
 		ws.on('message', data => this.onMessage(data));
 		ws.on('close', e => this.onClose(e));
 
 		this.updateMouse();
-		this.interval = setInterval(() => this.onInterval(), 1000 / 60);
+
+		this.intervals = [
+			setInterval(() => this.onInterval(), 1000 / 60),
+			setInterval(() => {
+				this.sendPack('p', [Date.now()]);
+			}, 5000)
+		];
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
 		this.sy = 0;
+	}
+
+	sendScreen() {
+		var screen = robot.captureScreen();
+		var ts = Date.now();
+
+		var imgBytes = screen.width * screen.height * screen.bytesPerPixel;
+		var buffer = new ArrayBuffer(20 + imgBytes);
+		var header = new Float64Array(buffer, 0, 2);
+		header.set([wire.WIRE['si'], ts]);
+		var screenView = new Uint16Array(buffer, 16, 2);
+		screenView.set([ screen.width, screen.height ]);
+
+		var imgView = new Uint8Array(buffer, 20, imgBytes);
+		imgView.set(screen.image);
+		
+		this.sendRaw(buffer);
 	}
 
 	updateMouse() {
@@ -89,14 +121,44 @@ class TouchPadSession {
 		return 0;
 	}
 
-	onMessage(msg) {
-		var data = msg.split('\n');
-		var cmd = data[0];
-		var coords = data[1] && JSON.parse(data[1]);
+	onMessage(data) {
+		if (data instanceof Buffer) {
+			var floats = abToType(data, Float64Array);
 
-		// data
-		// console.log('msg', cmd, coords);
+			var cmdCode = floats[0];
+			var cmd = wire.CODES[cmdCode];
 
+			if (cmd === undefined) {
+				console.log('invalid cmd code', cmd);
+			}
+
+			var ts = floats[1];
+			var coords = floats.subarray(2);
+
+			// console.log('meows', cmd, ts, coords);
+			if (this._lag !== undefined) {
+				if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
+				this._lag++;
+			} else {
+				this._lag = 0;
+			}
+
+			this.processMessage(cmd, coords, data);
+			return;
+		}
+		else if (typeof data !== 'string') {
+			console.log('Oops unknown data type', typeof data, data);
+			return;
+		}
+
+		var msg = data.split('\n');
+		var cmd = msg[0];
+		var coords = msg[1] && JSON.parse(msg[1]);
+
+		this.processMessage(cmd, coords, data);
+	}
+
+	processMessage(cmd, coords, data) {
 		// TODO support scrolling / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
 		// TODO MOUSE recording.
@@ -151,42 +213,67 @@ class TouchPadSession {
 				break;
 			case 'tc':
 				break;
-			case 'p': // receives ping
-				ws.send('pp\n'  + data[1]);
+			case 'sc':
+				this.sendScreen();
 				break;
-			case 'pp': // ping reply
-				var reply = data[1];
-				console.log(ws.type + ': RTT', Date.now() - pings[reply]);
-				delete pings[reply];
+			case 'p': // receives ping
+				this.sendPack('pp', [ coords[0]]);
+				break;
+			case 'pp': // received ping reply
+				var reply = coords[0];
+				console.log('RTT', Date.now() - reply);
 				break;
 			case 'r': // handle receiver resizing
 				break;
 			case 'dm':
-				this.sendToReceivers(msg);
-				break;
 			case 'do':
-				this.sendToReceivers(msg);
+			case 'so':
+				this.sendToReceivers(data);
 				break;
 			default:
 				// We just dump stuff for logging
-				console.log(data);
+				console.log(cmd);
 				break;
 		}
 	}
 
 	sendToReceivers(msg) {
-		for (let session of this.sessions) {
-			if (session instanceof TouchPadSession) {
+		this.sendToRole(msg, 'receiver');
+	}
 
-			} else {
-				session.send(msg);
+	sendToRole(msg, role) {
+		for (let session of this.sessions) {
+			if (session.roles.has(role)) {
+				session.sendRaw(msg);
 			}
 		}
 	}
 
+
+
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);
-		if (this.ws) this.ws.send(payload);
+		this.sendRaw(payload);
+	}
+
+	sendRaw(payload) {
+		if (this.ws) {
+			this.ws.send(payload, (e) => {
+				if (e) console.log('Cannot send message', payload, e);
+			});
+		}
+	}
+
+	sendPack(cmd, array) {
+		var cmdCode = wire.WIRE[cmd];
+		if (cmdCode === undefined) {
+			console.log('Warning, unknown cmd', cmd);
+		}
+
+		var ts = Date.now();
+
+		var floats = new Float64Array([cmdCode, ts].concat(array));
+		this.sendRaw(floats);
 	}
 
 	onInterval() {
@@ -195,12 +282,15 @@ class TouchPadSession {
 		// 	robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
 
 		this.updateMouse();
-		this.send('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
+		this.sendPack('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
 	}
 
 	onClose(e) {
 		console.log('TransmitterSession closed', e);
-		clearInterval(this.interval);
+		while (this.intervals.length) {
+			clearInterval(this.intervals.pop());
+		}
+		this.ws = null;
 	}
 }
 

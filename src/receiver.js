@@ -2,35 +2,37 @@
 
 var contact = window.contact || {}; // Namespace
 
-var ws;
-
-contact.Recevier = function(destination) {
+contact.Receiver = function(destination) {
 	connect(destination);
 }
 
-
 window.addEventListener('load', function() {
-	new contact.Recevier(location.hostname);
+	new contact.Receiver(location.hostname);
 });
 
 function connect(destination) {
-	ws = new WebSocket("ws://" + destination + ":8081/receiver");
+	var target = 'ws://' + destination + ':8081/receiver';
+	
+	var handler = {
+		onOpen: function(e) {
+			console.log('Connected to ' + target);
+			sendDimension();
+		},
 
-	ws.addEventListener('open', function(e) {
-		console.log('Connected to ' + ws.url);
-		sendDimension();
-	});
-	ws.addEventListener('close', function(e) {
-		console.log('Disconnected from ' + ws.url + ' (' + e.reason + ')');
-		ws = null;
-	});
+		onClose: function(e) {
+			console.log('Disconnected from ' + target + ' (' + e.reason + ')');
+		},
 
-	ws.addEventListener('message', onMessage);
+		onMessage: onMessage,
 
-	ws.addEventListener('error', function(e) {
-		console.log('error', e);
-		ws = null;
-	});
+		onError: function(e) {
+			console.log('error', e);
+		}
+
+	};
+
+	window.connection = new Connection(target, handler);
+	connection.open();
 }
 
 window.addEventListener('resize', sendDimension, false);
@@ -47,15 +49,14 @@ var tmaps = {
 };
 
 function createEvents(a, b) {
-
 	var x, y, i, j, len, target;
 	var touches = [];
 	var targets = [];
 	var uniqueTargets = [];
 
-	for (i=0, len = a.length / 2;i<len;i++) {
-		x = a[i * 2];
-		y = a[i * 2 + 1];
+	for (i=0, len = a.length; i<len; i+=2) {
+		x = a[i];
+		y = a[i + 1];
 
 		x = x / scaleWidth * width;
 		y = y / scaleHeight * height;
@@ -70,7 +71,6 @@ function createEvents(a, b) {
 	}
 
 	for (i=0;i<len;i++) {
-
 		var target = targets[i];
 		var count = 0;
 		var duplicated = false;
@@ -111,7 +111,8 @@ function createEvents(a, b) {
 		target = uniqueTargets[0];
 		// touchEvent.targetTouches = target.touches;
 		// touchEvent.currentTarget = target.target;
-		target.target.dispatchEvent(touchEvent);
+		if (target.target)
+			target.target.dispatchEvent(touchEvent);
 
 	} else {
 		window.dispatchEvent(touchEvent);
@@ -122,38 +123,32 @@ function createEvents(a, b) {
 }
 
 
-var scaleWidth, scaleHeight;
-var width, height;
+var scaleWidth = 1, scaleHeight = 1;
+var width = window.innerWidth,
+	height = window.innerHeight;
 
-function onMessage(e) {
-	var data = e.data;
-
-	var d = data.split('\n');
-
-	switch (d[0]) {
+function onMessage(cmd, params) {
+	// console.log('received', cmd, params);
+	switch (cmd) {
 		case 'p':
-			ws.send('pp\n'  + d[1]);
+			connection.sendPack('pp', params);
 			break;
 		case 't':
 			console.log('transmitter is ready');
 			break;
 		case 'r':
-			// sendDimension();
+			var dimensions = params;
+			scaleWidth = dimensions[0];
+			scaleHeight = dimensions[1];
 			break;
 		case 'ts':
 		case 'tm':
 		case 'te':
 		case 'tc':
-			var a = JSON.parse(d[1]);
-			createEvents(a, d[0]);
-			break;
-		case 'rr':
-			var dimensions = JSON.parse(d[1]);
-			scaleWidth = dimensions[0];
-			scaleHeight = dimensions[1];
+			createEvents(params, cmd);
 			break;
 		case 'dm':
-			var dms = JSON.parse(d[1]);
+			var dms = params;
 			if (window.onDm) window.onDm(
 				dms[0], dms[1], dms[2],
 				dms[3], dms[4], dms[5],
@@ -161,22 +156,24 @@ function onMessage(e) {
 				);
 			break;
 		case 'do':
-			var dos = JSON.parse(d[1]);
+			var dos = params;
 			window.dos = dos;
-			if (window.onDo) window.onDo(dos[0], dos[1], dos[2]);
+			if (window.onDo) window.onDo(dos[0], dos[1], dos[2], dos[3], dos[4]);
+			break;
+		case 'so':
+			if (window.onOrientation)
+				window.onOrientation(params[0]);
 			break;
 		default:
-			console.log(d);
+			console.log(cmd, params);
 	}
 }
 
 function send(e) {
-	if (ws) ws.send(e);
+	connection.send(e);
 }
 
 function sendDimension() {
-	width = window.innerWidth;
-	height = window.innerHeight;
 	send('r\n['+width+','+height+']');
 }
 

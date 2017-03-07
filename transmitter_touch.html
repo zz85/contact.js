@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<title>Sample Contact.js TouchPad</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<style type="text/css">
+		body { margin: 0px; overflow: hidden; }
+	</style>
+</head>
+<body>
+	<script src="src/wire.js"></script>
+	<script src="src/connection.js"></script>
+	<script src="src/transmitter.js"></script>
+	<script src="src/transmitter_example.js"></script>
+	<script type="text/javascript">
+		var target = 'ws://' + location.hostname + ':8081/transmitter';
+		var connection = new Connection(target, handler);
+		connection.open();
+	</script>
+</body>
+</html>

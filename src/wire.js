@@ -4,7 +4,6 @@ var CMDS = {
 	'p': 'ping (request) [token]',
 	'pp': 'ping reply [token]',
 	't': 'transmitter is ready',
-	'r': 'send dimensions',
 	'ts': 'touch start [x1, y1, x2, y2....]',
 	'tm': 'touch move [x1, y1, x2, y2....]',
 	'te': 'touch end [x1, y1, x2, y2....]',
@@ -16,7 +15,26 @@ var CMDS = {
 	'mm': 'mouse moving [dx, dy, dt]',
 	'dm': 'device motion [accx, accy, accz]',
 	'do': 'device orientation [alpha, beta, gamma]',
-	// TOOD
+	'so': 'screen orientation [-90, 0, 90]',
 	'sc': 'screen capture',
+	'si': 'screen image',
+	// TODO
 	'gr': 'generic request',
 };
+
+var KEYS = Object.keys(CMDS);
+
+var WIRE = {}; // cmds to binary code
+var CODES = {}; // wire to command keys
+
+KEYS.forEach((key, i) => {
+	WIRE[key] = i;
+	CODES[i] = key;
+});
+
+if (typeof module === 'object') {
+	module.exports = {
+		CODES,
+		WIRE
+	}
+}

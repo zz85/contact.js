@@ -18,41 +18,62 @@ var handler = {
 		console.log('close', e)
 	},
 
-	onMessage: function(e) {
-		var data = e.data;
-
-		var d = data.split('\n');
-
-		switch (d[0]) {
+	onMessage: function(cmd, params) {
+		switch (cmd) {
 			case 'p':
-				ws.send('pp\n'  + d[1]);
+				sendPack('pp', [ params[0] ])
 				break;
-			case 'r':
-				// sendDimension();
-				break;
-			case 'rr':
-				var dimensions = JSON.parse(d[1]);
-				remoteWidth = dimensions[0];
-				remoteHeight = dimensions[1];
+			// case 'r':
+			// 	remoteWidth = params[0];
+			// 	remoteHeight = params[1];
 
-				var remoteRatio = remoteWidth / remoteHeight;
-				var currentRatio = width / height;
+			// 	var remoteRatio = remoteWidth / remoteHeight;
+			// 	var currentRatio = width / height;
 
-				// if (remoteRatio > currentRatio) {
-				// 	// remote width is wider. // currentHeight should be restricted
-				// } else {
-				// 	//
-				// }
-				send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
-				break;
+			// 	// if (remoteRatio > currentRatio) {
+			// 	// 	// remote width is wider. // currentHeight should be restricted
+			// 	// } else {
+			// 	// 	//
+			// 	// }
+			// 	// send('ratio: ' + remoteRatio + ' vs ' + currentRatio);
+			// 	break;
 			case 'mc':
-				var dimensions = JSON.parse(d[1]);
-				remoteMouseX = dimensions[0];
-				remoteMouseY = dimensions[1];
+				remoteMouseX = params[0];
+				remoteMouseY = params[1];
 				break;
 
 		}
 	},
+
+
+	handleRaw: function handleRaw(cmd, dv, buffer) {
+		if (cmd === 'si') {
+			var ts = dv.getFloat64(8, true);
+			var screenView = new Uint16Array(buffer, 16, 2);
+			var imgBytes = screenView[0] * screenView[1] * 4;
+			var imgView = new Uint8ClampedArray(buffer, 20, imgBytes);
+
+			console.log('image!', Date.now() - ts);
+			console.log('size', screenView);
+
+			if (!window.ssctx) {
+				var canvas = document.createElement('canvas');
+				canvas.width = screenView[0];
+				canvas.height = screenView[1];
+				canvas.style.cssText = 'display: none; position: absolute; top: 0; left: 0; z-index: 10;';
+				document.body.appendChild(canvas);
+				var ctx = canvas.getContext('2d');
+				window.ssctx = ctx;
+				window.ss_canvas = canvas;
+			}
+
+			var imgData = new ImageData(imgView, screenView[0], screenView[1]);
+			ssctx.putImageData(imgData, 0, 0);
+			return true;
+		}
+	},
+
+
 	onError: function(e) {
 		console.log('error', e);
 	}
@@ -60,6 +81,10 @@ var handler = {
 
 function send(e) {
 	connection.send(e);
+}
+
+function sendPack(cmd, array) {
+	connection.sendPack(cmd, array);
 }
 
 function convert(touches) {
@@ -72,7 +97,7 @@ function convert(touches) {
 		a.push(px, py);
 	}
 
-	return JSON.stringify(a);
+	return a;
 }
 
 function sendDimension() {
@@ -109,14 +134,14 @@ function setLast(touches) {
 window.addEventListener('touchend', function(event) {
 	touches = event.touches;
 	last.time = 0;
-	send('te\n' + convert(touches));
+	sendPack('te', convert(touches));
 });
 
 window.addEventListener('touchmove', function(event) {
 	event.preventDefault();
 	touches = event.touches;
 	setLast(touches);
-	send('tm\n' + convert(touches));
+	sendPack('tm', convert(touches));
 });
 
 
@@ -132,19 +157,19 @@ window.addEventListener('touchforcechange', function(event) {
 		forces.push(touches[i].force);
 	}
 
-	send('tf\n' + JSON.stringify(forces));
+	sendPack('tf', forces);
 });
 
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
 	setLast(touches);
-	send('ts\n' + convert(touches));
+	sendPack('ts', convert(touches));
 });
 
 window.addEventListener('touchcancel', function(event) {
 	touches = event.touches;
-	send('tc\n' + convert(touches));
+	sendPack('tc', convert(touches));
 });
 
 window.addEventListener('resize', sendDimension);
@@ -159,19 +184,34 @@ function tilt(a, b) {
 // TODO
 // Joystick controller?
 
+// sensors
+// 1. touch screen + force
+// 2. video + audio
+// 3. orientation
+// 4. gps - location
+// not available
+// - battery, vibration, ambient light
+
 function activateDeviceOrientation() {
-	var orientAlpha = 0, orientBeta = 0, orientGamma = 0;
-
 	window.addEventListener('deviceorientation', function(event) {
-		orientAlpha = event.alpha;
-		orientBeta = event.beta;
-		orientGamma = event.gamma;
-		// alpha = compass (0, 360)
-		// beta = forward roll (-90, 90) (-180, 180 ff)
-		// gamma = -90, 270. (-90, 90 ff)
+		// if (Math.random() < 0.01) send('Absolute:' + event.absolute);
 
-		send('do\n[' + event.alpha + ',' + event.beta + ',' + event.gamma + ']')
+		sendPack('do', [
+			event.alpha, event.beta, event.gamma,
+			event.webkitCompassHeading || 0,
+			window.orientation || 0
+		]);
 	});
+
+
+	window.addEventListener('orientationchange', function(e) {
+		// send('screen.orientation.angle' + window.orientation);
+		sendPack('so', [
+			window.orientation
+		]);
+	});
+
+	// window.addEventListener( 'compassneedscalibration', );
 }
 
 function activateDeviceMotion() {
@@ -188,7 +228,6 @@ function activateDeviceMotion() {
 		return 0;
 	}
 
-	// TODO the best way to understand this data is to graph it!
 	// estimated 60fps
 	window.addEventListener('devicemotion', function (event) {
 		var acc = event.acceleration;
@@ -214,10 +253,12 @@ function activateDeviceMotion() {
 		max_amp = Math.max(max_amp, Math.abs(avg_ax), Math.abs(avg_ay), Math.abs(avg_az));
 
 		// if (s) send(s);
-		send('dm\n['
-			+ acc.x + ',' + acc.y + ',' + acc.z + ','
-			+ alpha + ',' + beta + ',' + gamma + ','
-			+ timeInterval + ']');
+ 
+		sendPack('dm', [
+			acc.x, acc.y, acc.z,
+			alpha, beta, gamma,
+			timeInterval
+		]);
 	});
 
 	setInterval(function() {
@@ -228,10 +269,8 @@ function activateDeviceMotion() {
 	}, 100);
 }
 
+// function getScreen() {
+// 	connection.sendPack('sc');
+// }
 
-activateDeviceOrientation();
-activateDeviceMotion();
-
-var target = 'ws://' + location.hostname + ':8081/touchpad';
-var connection = new Connection(target, handler);
-connection.open();
+// setInterval(getScreen, 5000);
