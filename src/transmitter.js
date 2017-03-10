@@ -2,12 +2,11 @@
 
 var remoteMouseX, remoteMouseY;
 
-var width, height, remoteWidth, remoteHeight;
+var width, height, remoteWidth, remoteHeight;	
 
 var handler = {
 	onOpen: function(e) {
 		sendDimension();
-		// send('devicemotion' + typeof(window.DeviceMotionEvent));
 	},
 
 	onError: function (e) {
@@ -21,7 +20,7 @@ var handler = {
 	onMessage: function(cmd, params) {
 		switch (cmd) {
 			case 'p':
-				sendPack('pp', [ params[0] ])
+				sendPack('pp', params);
 				break;
 			// case 'r':
 			// 	remoteWidth = params[0];
@@ -72,7 +71,6 @@ var handler = {
 			return true;
 		}
 	},
-
 
 	onError: function(e) {
 		console.log('error', e);
@@ -148,9 +146,6 @@ window.addEventListener('touchmove', function(event) {
 window.addEventListener('touchforcechange', function(event) {
 	// event.preventDefault();
 	touches = event.touches;
-	// setLast(touches);
-	// send('tf\n' + convert(touches));
-
 	var forces = [];
 
 	for (let i = 0; i < touches.length; i++) {
@@ -159,7 +154,6 @@ window.addEventListener('touchforcechange', function(event) {
 
 	sendPack('tf', forces);
 });
-
 
 window.addEventListener('touchstart', function(event) {
 	touches = event.touches;
@@ -174,17 +168,13 @@ window.addEventListener('touchcancel', function(event) {
 
 window.addEventListener('resize', sendDimension);
 
-function tilt(a, b) {
-	send('tilt [' + a + ', ' + b + ']');
-}
-
 // hello in 50 languages.
 // css3d mobile deviceorientation threejs
 
 // TODO
 // Joystick controller?
 
-// sensors
+// Other possible sensors?
 // 1. touch screen + force
 // 2. video + audio
 // 3. orientation

@@ -18,6 +18,7 @@ var CMDS = {
 	'so': 'screen orientation [-90, 0, 90]',
 	'sc': 'screen capture',
 	'si': 'screen image',
+	'sr': 'screen share request',
 	// TODO
 	'gr': 'generic request',
 };

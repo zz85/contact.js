@@ -14,8 +14,8 @@ class Session {
 		this.roles = new Set(roles);
 		this.name = name;
 
-		ws.on('message', data => this.onMessage(data));
-		ws.on('close', e => this.onClose(e));
+		// ws.on('message', data => this.onMessage(data));
+		// ws.on('close', e => this.onClose(e));
 
 		this.intervals = [
 			setInterval(() => {

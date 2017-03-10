@@ -11,6 +11,10 @@ var MAX_SPEED = 5;
 
 function abToType(b, Type) {
 	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+	return ab;
+}
+
+function fromArrayBuffer(ab, Type) {
 	var array = new Type(ab);
 	return array;
 }
@@ -21,10 +25,10 @@ class TouchPadSession {
 		this.sessions = sessions;
 		this.roles = new Set(roles);
 
-		this.speed = MIN_SPEED;		
+		this.speed = MIN_SPEED;
 
-		ws.on('message', data => this.onMessage(data));
-		ws.on('close', e => this.onClose(e));
+		// ws.on('message', data => this.onMessage(data));
+		// ws.on('close', e => this.onClose(e));
 
 		this.updateMouse();
 
@@ -53,7 +57,7 @@ class TouchPadSession {
 
 		var imgView = new Uint8Array(buffer, 20, imgBytes);
 		imgView.set(screen.image);
-		
+
 		this.sendRaw(buffer);
 	}
 
@@ -122,8 +126,15 @@ class TouchPadSession {
 	}
 
 	onMessage(data) {
-		if (data instanceof Buffer) {
-			var floats = abToType(data, Float64Array);
+		if (data instanceof Buffer || data instanceof ArrayBuffer) {
+			if (data instanceof Buffer) {
+				var ab = abToType(data);
+			} else {
+				// uws buffer handling
+				var ab = data;
+			}
+			
+			var floats = fromArrayBuffer(ab, Float64Array);
 
 			var cmdCode = floats[0];
 			var cmd = wire.CODES[cmdCode];
@@ -248,8 +259,6 @@ class TouchPadSession {
 			}
 		}
 	}
-
-
 
 	send(cmd, data) {
 		var payload = cmd + '\n' + JSON.stringify(data);

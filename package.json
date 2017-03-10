@@ -12,6 +12,7 @@
   "dependencies": {
     "bonjour": "^3.5.0",
     "robotjs": "git://github.com/BHamrick1/robotjs.git",
+    "uws": "^0.13.0",
     "ws": "^2.0.3"
   }
 }
