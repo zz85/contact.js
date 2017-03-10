@@ -6,14 +6,77 @@ var pings = {}; // TODO remove
 
 var TouchPadSession = require('./touchpad');
 var Session = require('./session');
+var wire = require('./wire');
 
 var sessions = new Set();
+var wss = new WebSocketServer({ port: websockets_port });
 
 function displayClients() {
 	console.log('Active Sessions', sessions.size);
 }
 
-var wss = new WebSocketServer({ port: websockets_port });
+function abToType(b, Type) {
+	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+	return ab;
+}
+
+function fromArrayBuffer(ab, Type) {
+	var array = new Type(ab);
+	return array;
+}
+
+function handleMessage(data, session) {
+	if (!session.processMessage) {
+		console.log('session.processMessage() not implemented!');
+	}
+
+	if (data instanceof Buffer || data instanceof ArrayBuffer) {
+		if (data instanceof Buffer) {
+			var ab = abToType(data);
+		} else {
+			// uws buffer handling
+			var ab = data;
+		}
+
+		var floats = fromArrayBuffer(ab, Float64Array);
+
+		var cmdCode = floats[0];
+		var cmd = wire.CODES[cmdCode];
+
+		if (cmd === undefined) {
+			console.log('invalid cmd code', cmd);
+		}
+
+		var ts = floats[1];
+		var coords = floats.subarray(2);
+
+		// console.log('meows', cmd, ts, coords);
+		if (this._lag !== undefined) {
+			if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
+			this._lag++;
+		} else {
+			this._lag = 0;
+		}
+
+		session.processMessage(cmd, coords, data);
+		return;
+	}
+	else if (typeof data !== 'string') {
+		console.log('Oops unknown data type', typeof data, data);
+		return;
+	}
+
+	var msg = data.split('\n');
+	var cmd = msg[0];
+
+	try {
+		var coords = msg[1] && JSON.parse(msg[1]);
+	} catch (e) {
+		console.log('Cannot parse string', data);
+	}
+
+	session.processMessage(cmd, coords, data);
+}
 
 wss.on('connection', function(ws) {
 	var info = ws.upgradeReq;
@@ -50,9 +113,7 @@ wss.on('connection', function(ws) {
 
 	// Standard bindings?
 	ws.on('message', d => {
-		if (session.onMessage) {
-			session.onMessage(d);
-		}
+		handleMessage(d, session);
 	});
 
 	sessions.add(session);
