@@ -6,19 +6,35 @@ class ScreenShare extends EventEmitter {
         super();
     }
 
+    running() {
+        return this.process;
+    }
+
     start() {
-        // options. Scaling, cropping.
-        var args = `ffmpeg
+        if (this.running()) return;
+
+        console.log('Starting ffmpeg');
+
+        var webcam_input = `
+            -s 1280x720
+            -framerate 30
             -f avfoundation
-                -i 1
+                -i 0:0`;
+        var screen_input = `-f avfoundation -i 1`
+
+        // TODO options. Scaling, cropping, quality, bitrate.
+        var args = `ffmpeg
+            ${webcam_input}
             -f mpegts
             -codec:v mpeg1video
-                -q 15   
                 -bf 0
             -`.trim().split(/\s+/);
+        // -vf scale=-1:720
+        // -b:v 1000k
+        // -q 22
 
         var cmd = args.shift();
-        console.log(args);
+        console.log('Running', cmd, args.join(' '));
 
         var process = child_process.spawn(cmd, args);
 
@@ -37,39 +53,47 @@ class ScreenShare extends EventEmitter {
     }
 
     stop() {
-        if (this.process) this.process.kill();
+        if (!this.running()) return;
+        
+        console.log('Killing ffmpeg');
+        this.process.kill();
     }
 }
 
 module.exports = ScreenShare;
 
-
-
-p = new ScreenShare();
-p.on('out', d => console.log(d));
-p.on('data', d => {
+screenshare = new ScreenShare();
+screenshare.on('out', d => console.log(d));
+screenshare.on('data', d => {
     for (var c of clients) {
         c.send(d);
     }
 });
-p.start();
+screenshare.start();
 
 // Screenshare server
 
-WebSocket = require('uws');
+var WebSocket = require('uws');
 var clients = new Set();
 var wss = new WebSocket.Server({ port: 8082, perMessageDeflate: false });
 wss.on('connection', function(ws) {
+    if (!screenshare.running()) {
+        screenshare.start();
+    }
+
 	ws.on('close', () => {
         console.log('Disconnected WebSocket');
-        clients.delete(ws)
+        clients.delete(ws);
+        if (clients.size === 0) {
+            screenshare.stop();
+        }
     });
     
     console.log(
 		'New WebSocket Connection: ', 
 		ws.upgradeReq.socket.remoteAddress,
 		ws.upgradeReq.headers['user-agent'],
-		'('+wss.connectionCount+' total)'
+		'('+ wss.connectionCount + ' total)'
 	);
 
     clients.add(ws);
