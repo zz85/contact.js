@@ -1,5 +1,6 @@
 var robot = require('robotjs');
 var wire = require('./wire');
+var screenshare = require('./screenshare');
 
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;

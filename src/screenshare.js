@@ -10,7 +10,7 @@ class ScreenShare extends EventEmitter {
         return this.process;
     }
 
-    start() {
+    start(mode) {
         if (this.running()) return;
 
         console.log('Starting ffmpeg');
@@ -20,11 +20,18 @@ class ScreenShare extends EventEmitter {
             -framerate 30
             -f avfoundation
                 -i 0:0`;
-        var screen_input = `-f avfoundation -i 1`
+
+        var screen_input = `-f avfoundation -i 1`;
+
+        var input = mode === 'webcam' ? webcam_input : screen_input;
+
+        var scale_720p = '-vf scale=-1:720';
+        var scale_half = '-vf scale=-1:720';
+
 
         // TODO options. Scaling, cropping, quality, bitrate.
         var args = `ffmpeg
-            ${webcam_input}
+            ${input}
             -f mpegts
             -codec:v mpeg1video
                 -bf 0
@@ -60,19 +67,17 @@ class ScreenShare extends EventEmitter {
     }
 }
 
-module.exports = ScreenShare;
-
-screenshare = new ScreenShare();
+var screenshare = new ScreenShare();
 screenshare.on('out', d => console.log(d));
 screenshare.on('data', d => {
     for (var c of clients) {
         c.send(d);
     }
 });
-screenshare.start();
+
+// screenshare.start();
 
 // Screenshare server
-
 var WebSocket = require('uws');
 var clients = new Set();
 var wss = new WebSocket.Server({ port: 8082, perMessageDeflate: false });
@@ -98,3 +103,10 @@ wss.on('connection', function(ws) {
 
     clients.add(ws);
 });
+
+console.log('Screenshare websocket server running on port', 8082);
+
+module.exports = {
+    ScreenShare,
+    ffmpeg: screenshare,
+};

@@ -7,6 +7,9 @@
     "url": "git@github.com:zz85/contact.js.git",
     "type": "git"
   },
+  "scripts": {
+    "start": "node src/server"
+  },
   "author": "Joshua Koo <zz85nus@gmail.com>",
   "license": "MIT",
   "dependencies": {
