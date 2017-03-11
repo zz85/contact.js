@@ -1,6 +1,7 @@
 var robot = require('robotjs');
 var wire = require('./wire');
 var screenshare = require('./screenshare');
+var Session = require('./session');
 
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
@@ -10,22 +11,11 @@ var MAX_SPEED = 5;
 // - remote mouse control
 // - server mouse reporting to transmitter
 
-class TouchPadSession {
+class TouchPadSession extends Session {
 	constructor(ws, sessions, roles) {
-		this.ws = ws;
-		this.sessions = sessions;
-		this.roles = new Set(roles);
+		super(ws, sessions, roles);
 
 		this.speed = MIN_SPEED;
-
-		this.updateMouse();
-
-		this.intervals = [
-			setInterval(() => this.onInterval(), 1000 / 60),
-			setInterval(() => {
-				this.sendPack('p', [Date.now()]);
-			}, 5000)
-		];
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
@@ -190,43 +180,6 @@ class TouchPadSession {
 				console.log(cmd);
 				break;
 		}
-	}
-
-	sendToReceivers(msg) {
-		this.sendToRole(msg, 'receiver');
-	}
-
-	sendToRole(msg, role) {
-		for (let session of this.sessions) {
-			if (session.roles.has(role)) {
-				session.sendRaw(msg);
-			}
-		}
-	}
-
-	send(cmd, data) {
-		var payload = cmd + '\n' + JSON.stringify(data);
-		this.sendRaw(payload);
-	}
-
-	sendRaw(payload) {
-		if (this.ws) {
-			this.ws.send(payload, (e) => {
-				if (e) console.log('Cannot send message', payload, e);
-			});
-		}
-	}
-
-	sendPack(cmd, array) {
-		var cmdCode = wire.WIRE[cmd];
-		if (cmdCode === undefined) {
-			console.log('Warning, unknown cmd', cmd);
-		}
-
-		var ts = Date.now();
-
-		var floats = new Float64Array([cmdCode, ts].concat(array));
-		this.sendRaw(floats);
 	}
 
 	onInterval() {
