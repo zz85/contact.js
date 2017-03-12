@@ -186,6 +186,12 @@ class TouchPadSession extends Session {
 					() => screenshare.ffmpeg.start('webcam', coords.scale)
 				);
 				break;
+			case 'rt':
+				// Type "Hello World".
+				robot.typeString(coords.text);
+				// // Press enter.
+				// robot.keyTap("enter");
+				break;
 			default:
 				// We just dump stuff for logging
 				console.log(cmd);

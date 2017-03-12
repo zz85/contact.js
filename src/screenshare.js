@@ -109,7 +109,7 @@ function stopFFmpeg() {
 
 wss.on('connection', function(ws) {
     if (!screenshare.running()) {
-        // screenshare.start();
+        screenshare.start();
     }
 
 	ws.on('close', () => {

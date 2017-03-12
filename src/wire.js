@@ -20,7 +20,7 @@ var CMDS = {
 	'si': 'screen image',
 	'sr': 'screen share request',
 	'wr': 'web cam request',
-
+	'rt': 'remote text (send text over)',
 	// TODO
 	'gr': 'generic request',
 };
