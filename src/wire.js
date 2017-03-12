@@ -19,6 +19,8 @@ var CMDS = {
 	'sc': 'screen capture',
 	'si': 'screen image',
 	'sr': 'screen share request',
+	'wr': 'web cam request',
+
 	// TODO
 	'gr': 'generic request',
 };

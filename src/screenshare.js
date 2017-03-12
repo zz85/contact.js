@@ -28,17 +28,17 @@ class ScreenShare extends EventEmitter {
         var scale_720p = '-vf scale=-1:720';
         var scale_half = '-vf scale=-1:720';
 
+        var bitrate_quality = '-b:v 1000k';
+        var q_quality = '-q 22';
 
         // TODO options. Scaling, cropping, quality, bitrate.
         var args = `ffmpeg
             ${input}
             -f mpegts
+            ${bitrate_quality}
             -codec:v mpeg1video
                 -bf 0
             -`.trim().split(/\s+/);
-        // -vf scale=-1:720
-        // -b:v 1000k
-        // -q 22
 
         var cmd = args.shift();
         console.log('Running', cmd, args.join(' '));
@@ -59,16 +59,25 @@ class ScreenShare extends EventEmitter {
         this.process = process;
     }
 
-    stop() {
-        if (!this.running()) return;
-        
+    stop(cb) {
+        if (!this.running()) return cb && cb();
+
         console.log('Killing ffmpeg');
         this.process.kill();
+
+        if (cb) {
+            this.process.on('exit', cb);
+        }
     }
 }
 
+var count = 0;
 var screenshare = new ScreenShare();
-screenshare.on('out', d => console.log(d));
+screenshare.on('out', d => {
+    count++;
+    if (count % 50 === 0)
+        console.log(d)
+});
 screenshare.on('data', d => {
     for (var c of clients) {
         c.send(d);
@@ -81,6 +90,14 @@ screenshare.on('data', d => {
 var WebSocket = require('uws');
 var clients = new Set();
 var wss = new WebSocket.Server({ port: 8082, perMessageDeflate: false });
+var stopping = null;
+
+function stopFFmpeg() {
+    if (clients.size === 0) {
+        screenshare.stop();
+    }
+}
+
 wss.on('connection', function(ws) {
     if (!screenshare.running()) {
         screenshare.start();
@@ -89,13 +106,12 @@ wss.on('connection', function(ws) {
 	ws.on('close', () => {
         console.log('Disconnected WebSocket');
         clients.delete(ws);
-        if (clients.size === 0) {
-            screenshare.stop();
-        }
+
+        setTimeout(stopFFmpeg, 5000);
     });
-    
+
     console.log(
-		'New WebSocket Connection: ', 
+		'New WebSocket Connection: ',
 		ws.upgradeReq.socket.remoteAddress,
 		ws.upgradeReq.headers['user-agent'],
 		'('+ wss.connectionCount + ' total)'

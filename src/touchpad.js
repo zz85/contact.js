@@ -175,6 +175,17 @@ class TouchPadSession extends Session {
 			case 'so':
 				this.sendToReceivers(data);
 				break;
+			case 'sr':
+				screenshare.ffmpeg.stop(
+					() => screenshare.ffmpeg.start('screenshare')
+				);
+				break;
+			case 'wr':
+				console.log('wr!');
+				screenshare.ffmpeg.stop(
+					() => screenshare.ffmpeg.start('webcam')
+				);
+				break;
 			default:
 				// We just dump stuff for logging
 				console.log(cmd);
