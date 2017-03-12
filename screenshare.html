@@ -63,6 +63,17 @@
                 text: input
             })
         }
+
+        function activate(target) {
+            target.addEventListener('keydown', (e) => {
+                console.log('down', e);
+                connection.send('key: ' + e.key + ' code: ' + e.code);
+            });
+
+            target.addEventListener('keyup', (e) => {
+                console.log('up', e);
+            });
+        }
 	</script>
 
 
@@ -77,6 +88,8 @@
         <button onclick="setScale('720p')">Zoom 720p</button>
 
         <button onclick="ask()">Type something</button>
+        <input onfocus="activate(this)"/>
+        <textarea></textarea>
 
         <!--TODOS
         <button>Left</button>
@@ -86,7 +99,6 @@
         Enter
         Backspace
         Cmd-Tab
-
 
         ADD mini typeboard here.
         -->

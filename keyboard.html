@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Screensharing</title>
+	<style type="text/css">
+		html, body {
+			background-color: #111;
+			text-align: center;
+		}
+
+        button {
+            margin: 4px;
+            /*background: #eee;*/
+            font-size: 3em;
+        }
+	</style>
+
+</head>
+<body>
+	<script src="src/wire.js"></script>
+	<script src="src/connection.js"></script>
+	<script src="src/transmitter.js"></script>
+	<!--<script src="src/transmitter_example.js"></script>-->
+	<script type="text/javascript">
+		var target = 'ws://' + location.hostname + ':8081/touchpad';
+		var connection = new Connection(target, handler);
+		connection.open();
+
+        var keys = [
+            "backspace",
+            "delete",
+            "enter",
+            "tab",
+            "escape",
+            "up",
+            "down",
+            "right",
+            "left",
+            "home",
+            "end",
+            "pageup",
+            "pagedown",
+            "f1",
+            "f2",
+            "f3",
+            "f4",
+            "f5",
+            "f6",
+            "f7",
+            "f8",
+            "f9",
+            "f10",
+            "f11",
+            "f12",
+            "command",
+            "alt",
+            "control",
+            "shift",
+            "right_shift",
+            "space",
+            "printscreen",
+            "insert",
+            "audio_mute",
+            "audio_vol_down",
+            "audio_vol_up",
+            "audio_play",
+            "audio_stop",
+            "audio_pause",
+            "audio_prev",
+            "audio_next",
+            "audio_rewind",
+            "audio_forward",
+            "audio_repeat",
+            "audio_random",
+            "numpad_0",
+            "numpad_1",
+            "numpad_2",
+            "numpad_3",
+            "numpad_4",
+            "numpad_5",
+            "numpad_6",
+            "numpad_7",
+            "numpad_8",
+            "numpad_9",
+            "lights_mon_up",
+            "lights_mon_down",
+            "lights_kbd_toggle",
+            "lights_kbd_up",
+            "lights_kbd_down"
+        ];
+
+        keys.forEach(name => {
+            var key = document.createElement('button');
+            key.innerText = name;
+            key.onclick = (e) => {
+                sendKeyTap(name);
+                // e.preventDefault();
+                e.stopPropagation();
+            }
+            document.body.appendChild(key);
+        })
+
+        function sendKeyTap(key) {
+            connection.sendType('kt', {
+                key: key
+            })
+        }
+
+        function ask() {
+            var input = prompt('Say something');
+            if (input) connection.sendType('rt', {
+                text: input
+            })
+        }
+
+        function activate(target) {
+            target.addEventListener('keydown', (e) => {
+                console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code);
+                connection.send('keydown: ' + e.keyCode);
+            });
+
+            target.addEventListener('keyup', (e) => {
+                console.log('up', e);
+                connection.send('keyup: ' + e.keyCode);
+            });
+        }
+	</script>
+
+
+        <button onclick="ask()">Type something</button>
+        <input onfocus="activate(this)"/>
+        <textarea></textarea>
+        <!--
+            TODOS
+            
+            Keyboard Shortcuts like
+            - Cmd-Tab
+            - Cmd-Z
+
+            ADD mini virtual keyboard.
+
+            typing of words/emojis/unicodes
+
+        -->
+
+</body>
+</html>

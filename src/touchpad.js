@@ -187,10 +187,16 @@ class TouchPadSession extends Session {
 				);
 				break;
 			case 'rt':
-				// Type "Hello World".
 				robot.typeString(coords.text);
 				// // Press enter.
-				// robot.keyTap("enter");
+				// keyToggle
+				break;
+			case 'kt':
+				try {
+					robot.keyTap(coords.key);
+				} catch (e) {
+					console.log(coords.key, 'is not supported', e);
+				}
 				break;
 			default:
 				// We just dump stuff for logging

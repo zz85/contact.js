@@ -129,44 +129,48 @@ function setLast(touches) {
 	}
 }
 
-window.addEventListener('touchend', function(event) {
-	touches = event.touches;
-	last.time = 0;
-	sendPack('te', convert(touches));
-});
+function activateTouches() {
+	var target = window;
 
-window.addEventListener('touchmove', function(event) {
-	event.preventDefault();
-	touches = event.touches;
-	setLast(touches);
-	sendPack('tm', convert(touches));
-});
+	target.addEventListener('touchend', function(event) {
+		touches = event.touches;
+		last.time = 0;
+		sendPack('te', convert(touches));
+	});
+
+	target.addEventListener('touchmove', function(event) {
+		event.preventDefault();
+		touches = event.touches;
+		setLast(touches);
+		sendPack('tm', convert(touches));
+	});
 
 
-window.addEventListener('touchforcechange', function(event) {
-	// event.preventDefault();
-	touches = event.touches;
-	var forces = [];
+	target.addEventListener('touchforcechange', function(event) {
+		// event.preventDefault();
+		touches = event.touches;
+		var forces = [];
 
-	for (let i = 0; i < touches.length; i++) {
-		forces.push(touches[i].force);
-	}
+		for (let i = 0; i < touches.length; i++) {
+			forces.push(touches[i].force);
+		}
 
-	sendPack('tf', forces);
-});
+		sendPack('tf', forces);
+	});
 
-window.addEventListener('touchstart', function(event) {
-	touches = event.touches;
-	setLast(touches);
-	sendPack('ts', convert(touches));
-});
+	target.addEventListener('touchstart', function(event) {
+		touches = event.touches;
+		setLast(touches);
+		sendPack('ts', convert(touches));
+	});
 
-window.addEventListener('touchcancel', function(event) {
-	touches = event.touches;
-	sendPack('tc', convert(touches));
-});
+	target.addEventListener('touchcancel', function(event) {
+		touches = event.touches;
+		sendPack('tc', convert(touches));
+	});
 
-window.addEventListener('resize', sendDimension);
+	target.addEventListener('resize', sendDimension);
+}
 
 // hello in 50 languages.
 // css3d mobile deviceorientation threejs
