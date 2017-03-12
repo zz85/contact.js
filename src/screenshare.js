@@ -10,10 +10,10 @@ class ScreenShare extends EventEmitter {
         return this.process;
     }
 
-    start(mode) {
+    start(mode, scale) {
         if (this.running()) return;
 
-        console.log('Starting ffmpeg');
+        console.log('Starting ffmpeg', arguments);
 
         var webcam_input = `
             -s 1280x720
@@ -25,15 +25,24 @@ class ScreenShare extends EventEmitter {
 
         var input = mode === 'webcam' ? webcam_input : screen_input;
 
-        var scale_720p = '-vf scale=-1:720';
-        var scale_half = '-vf scale=-1:720';
+        var scales = {
+            '': '',
+            '720p': '-vf scale=-1:720',
+            '.75': '-vf scale=iw*0.75:ih*0.75',
+            half: '-vf scale=iw*0.5:ih*0.5',
+            quarter: '-vf scale=iw*0.25:ih*0.25',
+            double: '-vf scale=iw*2:ih*2',
+        };
+
+        scale = scales[scale] || '';
 
         var bitrate_quality = '-b:v 1000k';
         var q_quality = '-q 22';
 
-        // TODO options. Scaling, cropping, quality, bitrate.
+        // TODO options. cropping, quality / bitrate.
         var args = `ffmpeg
             ${input}
+            ${scale}
             -f mpegts
             ${bitrate_quality}
             -codec:v mpeg1video
@@ -100,7 +109,7 @@ function stopFFmpeg() {
 
 wss.on('connection', function(ws) {
     if (!screenshare.running()) {
-        screenshare.start();
+        // screenshare.start();
     }
 
 	ws.on('close', () => {

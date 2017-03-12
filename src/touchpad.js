@@ -177,13 +177,13 @@ class TouchPadSession extends Session {
 				break;
 			case 'sr':
 				screenshare.ffmpeg.stop(
-					() => screenshare.ffmpeg.start('screenshare')
+					() => screenshare.ffmpeg.start('screenshare', coords.scale)
 				);
 				break;
 			case 'wr':
 				console.log('wr!');
 				screenshare.ffmpeg.stop(
-					() => screenshare.ffmpeg.start('webcam')
+					() => screenshare.ffmpeg.start('webcam', coords.scale)
 				);
 				break;
 			default:
