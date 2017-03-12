@@ -8,7 +8,7 @@
 			text-align: center;
 		}
 	</style>
-	
+
 </head>
 <body>
 	<canvas id="video-canvas"></canvas>
@@ -27,6 +27,41 @@
 		var target = 'ws://' + location.hostname + ':8081/touchpad';
 		var connection = new Connection(target, handler);
 		connection.open();
+
+        function screenshare() {
+            connection.sendPack('sr');
+            // TODO server should broadcast request to resize
+            setTimeout(() => {
+                player.video.hasSequenceHeader = false
+            }, 500);
+        }
+
+        function webcam() {
+            connection.sendPack('wr');
+            setTimeout(() => {
+                player.video.hasSequenceHeader = false
+            }, 500);
+        }
 	</script>
+
+
+    <div style="position: fixed; bottom: 0; left: 0; z-index: 50; padding: 10px;">
+        <button onclick="screenshare()">Request Screenshare</button>
+        <button onclick="webcam()">Request Webcam</button>
+
+
+        <!--TODOS
+        <button>Zoom x2</button>
+        <button>Zoom x0.5</button>
+
+        <button>Left</button>
+        <button>Right</button>
+        <button>Up</button>
+        <button>Down</button>
+
+        <button>Type something</button>
+        -->
+
+    </div>
 </body>
 </html>
