@@ -97,6 +97,17 @@
                 // e.preventDefault();
                 e.stopPropagation();
             }
+            key.ontouchstart = (e) => {
+                send('touchstart' + name);
+            }
+
+            key.ontouchend = (e) => {
+                send('touchend' + name);
+            }
+
+            key.ontouchcancel = (e) => {
+                send('touchcancel' + name);
+            }
             document.body.appendChild(key);
         })
 
@@ -140,6 +151,8 @@
             ADD mini virtual keyboard.
 
             typing of words/emojis/unicodes
+
+            Also see https://github.com/timoxley/keycode/blob/master/index.js
 
         -->
 

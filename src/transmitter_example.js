@@ -98,4 +98,5 @@ function start() {
     animate();
 }
 
+activateTouch();
 start();

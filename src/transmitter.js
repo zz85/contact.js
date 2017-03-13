@@ -129,7 +129,7 @@ function setLast(touches) {
 	}
 }
 
-function activateTouches() {
+function activateTouch() {
 	var target = window;
 
 	target.addEventListener('touchend', function(event) {
