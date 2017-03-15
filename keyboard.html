@@ -25,7 +25,7 @@
 
     <button onclick="ask()">Send something</button>
     <input id="input"/>
-    <textarea></textarea>
+    <textarea id="input2"></textarea>
     <!--
         TODOS
         
@@ -169,12 +169,17 @@
 
         function ask() {
             var input = prompt('Say something');
+            sendString(input);
+        }
+
+        function sendString(input) {
             if (input) connection.sendType('rt', {
                 text: input
-            })
+            });
         }
 
         function activate(target) {
+            /*
             var keys = [];
             for (var k in target) {
                 keys.push(k);
@@ -186,12 +191,31 @@
                 }
             });
             return;
+            */
+
+            var to = null;
+            var changed = false;
+
+            var ok = function() {
+                if (!changed) return;
+                console.log('XXX changed? ', changed, target.value);
+                sendString(target.value);
+                target.value = '';
+                to = clearTimeout(to);
+            }
+
             target.addEventListener('keydown', (e) => {
                 // console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code, 'composed : ', e.composed, 'composing', e.isComposing);
-                console.log('keydown: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+                // console.log('keydown: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
                 connection.send('keydown: ' + e.keyCode);
 
-                console.log('val', target.value);
+                switch (e.keyCode) {
+                    case 8:
+                        sendKeyTap('backspace');
+                        break;
+                }
+
+                // console.log('val', target.value);
             });
 
             target.addEventListener('keyup', (e) => {
@@ -203,6 +227,12 @@
                 //     console.log('new', target.value);
                 //     lastValue = target.value;
                 // }
+
+                changed = !e.isComposing;
+                if (to) {
+                    clearTimeout(to);
+                }
+                to = setTimeout(ok, 100);
             });
 
             // use isComposing
@@ -210,8 +240,14 @@
             target.addEventListener('input', (e) => {
                 // work with chars and unicodes, not chinese
                 console.log('** Input value: ', target.value);
-                console.log('input: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+                console.log('input: ' + e.keyCode, 'composed : ', e.composed);
                 // target.value = '';
+
+                changed = true;
+                if (to) {
+                    clearTimeout(to);
+                }
+                to = setTimeout(ok, 100);
             })
             
             var lastValue = null;
@@ -219,11 +255,12 @@
             // target.addEventListener('change', (e) => {
             //     console.log('change', e);
             //     connection.send('change: ' + e.keyCode);
-            // });
+            // });￰ﾟﾘﾏ￰ﾟﾘﾕ￰ﾟﾘﾫ￰ﾟﾘﾶ￰ﾟﾘﾩ￢ﾘﾹ￯ﾸﾏ￰ﾟﾘﾒ￰ﾟﾤﾓ￰ﾟﾤﾓ￰ﾟﾤﾓ
 
         }
 
         activate(input);
+        activate(input2);
 	</script>
 </body>
 </html>

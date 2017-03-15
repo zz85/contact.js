@@ -187,6 +187,7 @@ class TouchPadSession extends Session {
 				);
 				break;
 			case 'rt':
+				console.log('type', coords.text);
 				robot.typeString(coords.text);
 				// // Press enter.
 				// keyToggle
