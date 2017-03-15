@@ -21,17 +21,42 @@
 	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
 	<!--<script src="src/transmitter_example.js"></script>-->
+
+
+    <button onclick="ask()">Send something</button>
+    <input id="input"/>
+    <textarea></textarea>
+    <!--
+        TODOS
+        
+        Keyboard Shortcuts like
+        - Cmd-Tab
+        - Cmd-Z
+
+        ADD mini virtual keyboard.
+
+        typing of words/emojis/unicodes
+
+        Also see https://github.com/timoxley/keycode/blob/master/index.js
+
+    -->
+
+
+
 	<script type="text/javascript">
 		var target = 'ws://' + location.hostname + ':8081/touchpad';
 		var connection = new Connection(target, handler);
 		connection.open();
 
-        var keys = [
+        var specials = [
             "backspace",
             "delete",
             "enter",
             "tab",
             "escape",
+        ]
+
+        var directional = [
             "up",
             "down",
             "right",
@@ -40,6 +65,9 @@
             "end",
             "pageup",
             "pagedown",
+        ];
+
+        var f_keys = [
             "f1",
             "f2",
             "f3",
@@ -52,6 +80,9 @@
             "f10",
             "f11",
             "f12",
+        ];
+
+        var modifiers = [
             "command",
             "alt",
             "control",
@@ -60,6 +91,9 @@
             "space",
             "printscreen",
             "insert",
+        ];
+
+        var audio = [
             "audio_mute",
             "audio_vol_down",
             "audio_vol_up",
@@ -72,6 +106,9 @@
             "audio_forward",
             "audio_repeat",
             "audio_random",
+        ];
+
+        var numpad = [
             "numpad_0",
             "numpad_1",
             "numpad_2",
@@ -82,11 +119,24 @@
             "numpad_7",
             "numpad_8",
             "numpad_9",
+        ];
+
+        var lights = [
             "lights_mon_up",
             "lights_mon_down",
             "lights_kbd_toggle",
             "lights_kbd_up",
             "lights_kbd_down"
+        ];
+
+        var keys = [
+            ...specials,
+            ...directional,
+            ...f_keys,
+            ...modifiers,
+            ...audio,
+            ...numpad,
+            ...lights
         ];
 
         keys.forEach(name => {
@@ -125,36 +175,55 @@
         }
 
         function activate(target) {
+            var keys = [];
+            for (var k in target) {
+                keys.push(k);
+            }
+            keys.forEach(k => {
+                if (/^on/.exec(k)) {
+                    // console.log('k', k);
+                    target[k] = (e) => console.log(k);
+                }
+            });
+            return;
             target.addEventListener('keydown', (e) => {
-                console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code);
+                // console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code, 'composed : ', e.composed, 'composing', e.isComposing);
+                console.log('keydown: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
                 connection.send('keydown: ' + e.keyCode);
+
+                console.log('val', target.value);
             });
 
             target.addEventListener('keyup', (e) => {
-                console.log('up', e);
+                console.log('keyup: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+                // console.log('up', e);
                 connection.send('keyup: ' + e.keyCode);
+
+                // if (target.value !== lastValue) {
+                //     console.log('new', target.value);
+                //     lastValue = target.value;
+                // }
             });
-        }
-	</script>
 
+            // use isComposing
 
-        <button onclick="ask()">Type something</button>
-        <input onfocus="activate(this)"/>
-        <textarea></textarea>
-        <!--
-            TODOS
+            target.addEventListener('input', (e) => {
+                // work with chars and unicodes, not chinese
+                console.log('** Input value: ', target.value);
+                console.log('input: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+                // target.value = '';
+            })
             
-            Keyboard Shortcuts like
-            - Cmd-Tab
-            - Cmd-Z
+            var lastValue = null;
 
-            ADD mini virtual keyboard.
+            // target.addEventListener('change', (e) => {
+            //     console.log('change', e);
+            //     connection.send('change: ' + e.keyCode);
+            // });
 
-            typing of words/emojis/unicodes
+        }
 
-            Also see https://github.com/timoxley/keycode/blob/master/index.js
-
-        -->
-
+        activate(input);
+	</script>
 </body>
 </html>
