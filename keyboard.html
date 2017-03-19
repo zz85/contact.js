@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Screensharing</title>
+	<title>Remote Keyboard</title>
 	<style type="text/css">
 		html, body {
 			background-color: #111;
 			text-align: center;
+			color: #eee;
 		}
 
-        button {
-            margin: 4px;
-            /*background: #eee;*/
-            font-size: 3em;
-        }
+		button {
+			margin: 4px;
+			/*background: #eee;*/
+			font-size: 3em;
+		}
 	</style>
 
 </head>
@@ -23,21 +24,21 @@
 	<!--<script src="src/transmitter_example.js"></script>-->
 
 
-    <button onclick="ask()">Send something</button>
-    <input id="input"/>
-    <textarea id="input2"></textarea>
-    <!--
-        TODOS
+	<button onclick="ask()">Send something</button>
+	<input id="input"/>
+	<textarea id="input2"></textarea>
+	<!--
+		TODOS
 
-        Keyboard Shortcuts like
-        - Cmd-Tab
-        - Cmd-Z
-        - Directions
+		Keyboard Shortcuts like
+		- Cmd-Tab
+		- Cmd-Z
+		- Directions
 
-        ADD mini virtual keyboard.
+		ADD mini virtual keyboard.
 
-        typing of words/emojis/unicodes
-    -->
+		typing of words/emojis/unicodes
+	-->
 
 
 
@@ -46,336 +47,347 @@
 		var connection = new Connection(target, handler);
 		connection.open();
 
-        var specials = [
-            "backspace",
-            "delete",
-            "enter",
-            "tab",
-            "escape",
-        ]
+		var specials = [
+			"backspace",
+			"delete",
+			"enter",
+			"tab",
+			"escape",
+		]
 
-        var directional = [
-            "up",
-            "down",
-            "right",
-            "left",
-            "home",
-            "end",
-            "pageup",
-            "pagedown",
-        ];
+		var directional = [
+			"up",
+			"down",
+			"right",
+			"left",
+			"home",
+			"end",
+			"pageup",
+			"pagedown",
+		];
 
-        var f_keys = [
-            "f1",
-            "f2",
-            "f3",
-            "f4",
-            "f5",
-            "f6",
-            "f7",
-            "f8",
-            "f9",
-            "f10",
-            "f11",
-            "f12",
-        ];
+		var f_keys = [
+			"f1",
+			"f2",
+			"f3",
+			"f4",
+			"f5",
+			"f6",
+			"f7",
+			"f8",
+			"f9",
+			"f10",
+			"f11",
+			"f12",
+		];
 
-        var modifiers = [
-            "command",
-            "alt",
-            "control",
-            "shift",
-            "right_shift",
-            "space",
-            "printscreen",
-            "insert",
-        ];
+		var modifiers = [
+			"command",
+			"alt",
+			"control",
+			"shift",
+			"right_shift",
+			"space",
+			"printscreen",
+			"insert",
+		];
 
-        var audio = [
-            "audio_mute",
-            "audio_vol_down",
-            "audio_vol_up",
-            "audio_play",
-            "audio_stop",
-            "audio_pause",
-            "audio_prev",
-            "audio_next",
-            "audio_rewind",
-            "audio_forward",
-            "audio_repeat",
-            "audio_random",
-        ];
+		var audio = [
+			"audio_mute",
+			"audio_vol_down",
+			"audio_vol_up",
+			"audio_play",
+			"audio_stop",
+			"audio_pause",
+			"audio_prev",
+			"audio_next",
+			"audio_rewind",
+			"audio_forward",
+			"audio_repeat",
+			"audio_random",
+		];
 
-        var numpad = [
-            "numpad_0",
-            "numpad_1",
-            "numpad_2",
-            "numpad_3",
-            "numpad_4",
-            "numpad_5",
-            "numpad_6",
-            "numpad_7",
-            "numpad_8",
-            "numpad_9",
-        ];
+		var numpad = [
+			"numpad_0",
+			"numpad_1",
+			"numpad_2",
+			"numpad_3",
+			"numpad_4",
+			"numpad_5",
+			"numpad_6",
+			"numpad_7",
+			"numpad_8",
+			"numpad_9",
+		];
 
-        var lights = [
-            "lights_mon_up",
-            "lights_mon_down",
-            "lights_kbd_toggle",
-            "lights_kbd_up",
-            "lights_kbd_down"
-        ];
+		var lights = [
+			"lights_mon_up",
+			"lights_mon_down",
+			"lights_kbd_toggle",
+			"lights_kbd_up",
+			"lights_kbd_down"
+		];
 
-        var keys = [
-            ...specials,
-            ...directional,
-            ...f_keys,
-            ...modifiers,
-            ...audio,
-            ...numpad,
-            ...lights
-        ];
+		var keys = [
+			'specials',
+			'directional',
+			'f_keys',
+			'modifiers',
+			'audio',
+			'numpad',
+			'lights'
+		].forEach(key => {
+			const h3 = document.createElement('h3');
+			h3.innerHTML = key;
+			document.body.appendChild(h3);
 
-        keys.forEach(name => {
-            var key = document.createElement('button');
-            key.innerText = name;
-            key.onclick = (e) => {
-                sendKeyTap(name);
-                // e.preventDefault();
-                e.stopPropagation();
-            }
-            key.ontouchstart = (e) => {
-                send('touchstart' + name);
-            }
+			const keys = window[key];
+			keys.forEach(name => {
+				var key = document.createElement('button');
+				key.innerText = name;
+				key.onclick = (e) => {
+					sendKeyTap(name);
+					// e.preventDefault();
+					e.stopPropagation();
+				}
+				key.ontouchstart = (e) => {
+					send('touchstart' + name);
+				}
 
-            key.ontouchend = (e) => {
-                send('touchend' + name);
-            }
+				key.ontouchend = (e) => {
+					send('touchend' + name);
+				}
 
-            key.ontouchcancel = (e) => {
-                send('touchcancel' + name);
-            }
-            document.body.appendChild(key);
-        })
+				key.ontouchcancel = (e) => {
+					send('touchcancel' + name);
+				}
+				document.body.appendChild(key);
+			});
+		});
 
-        function sendKeyTap(key) {
-            connection.sendType('kt', {
-                key: key
-            })
-        }
+		function sendKeyTap(key) {
+			connection.sendType('kt', {
+				key: key
+			})
+		}
 
-        function ask() {
-            var input = prompt('Say something');
-            sendString(input);
-        }
+		function ask() {
+			var input = prompt('Say something');
+			sendString(input);
+		}
 
-        function sendString(input) {
-            if (input) connection.sendType('rt', {
-                text: input
-            });
-        }
+		function sendString(input) {
+			if (input) connection.sendType('rt', {
+				text: input
+			});
+		}
+		// typeString
+		// toggleKeyCode
+		// toggleUniKey
 
-        function activateKeys(target) {
-            // Also see https://github.com/timoxley/keycode/blob/master/index.js
-            var codes = { '8': 'backspace',
-            '9': 'tab',
-            '13': 'enter',
-            '16': 'shift',
-            '17': 'ctrl',
-            '18': 'alt',
-            '19': 'pause/break',
-            '20': 'caps lock',
-            '27': 'esc',
-            '32': 'space',
-            '33': 'page up',
-            '34': 'page down',
-            '35': 'end',
-            '36': 'home',
-            '37': 'left',
-            '38': 'up',
-            '39': 'right',
-            '40': 'down',
-            '45': 'insert',
-            '46': 'delete',
-            '48': '0',
-            '49': '1',
-            '50': '2',
-            '51': '3',
-            '52': '4',
-            '53': '5',
-            '54': '6',
-            '55': '7',
-            '56': '8',
-            '57': '9',
-            '65': 'a',
-            '66': 'b',
-            '67': 'c',
-            '68': 'd',
-            '69': 'e',
-            '70': 'f',
-            '71': 'g',
-            '72': 'h',
-            '73': 'i',
-            '74': 'j',
-            '75': 'k',
-            '76': 'l',
-            '77': 'm',
-            '78': 'n',
-            '79': 'o',
-            '80': 'p',
-            '81': 'q',
-            '82': 'r',
-            '83': 's',
-            '84': 't',
-            '85': 'u',
-            '86': 'v',
-            '87': 'w',
-            '88': 'x',
-            '89': 'y',
-            '90': 'z',
-            '91': 'left command',
-            '93': 'right command',
-            '96': 'numpad 0',
-            '97': 'numpad 1',
-            '98': 'numpad 2',
-            '99': 'numpad 3',
-            '100': 'numpad 4',
-            '101': 'numpad 5',
-            '102': 'numpad 6',
-            '103': 'numpad 7',
-            '104': 'numpad 8',
-            '105': 'numpad 9',
-            '106': 'numpad *',
-            '107': 'numpad +',
-            '109': 'numpad -',
-            '110': 'numpad .',
-            '111': 'numpad /',
-            '112': 'f1',
-            '113': 'f2',
-            '114': 'f3',
-            '115': 'f4',
-            '116': 'f5',
-            '117': 'f6',
-            '118': 'f7',
-            '119': 'f8',
-            '120': 'f9',
-            '121': 'f10',
-            '122': 'f11',
-            '123': 'f12',
-            '144': 'num lock',
-            '145': 'scroll lock',
-            '182': 'my computer',
-            '183': 'my calculator',
-            '186': ';',
-            '187': '=',
-            '188': ',',
-            '189': '-',
-            '190': '.',
-            '191': '/',
-            '192': '`',
-            '219': '[',
-            '220': '\\',
-            '221': ']',
-            '222': '\'' }
+		function activateKeys(target) {
+			// Also see https://github.com/timoxley/keycode/blob/master/index.js
+			// https://github.com/octalmage/robotjs/blob/b4c81086b23280d522747fec61fca4b4051ddfd9/src/keypress.c
+			// https://github.com/msanders/autopy/blob/master/src/keypress.c
+			var codes = { '8': 'backspace',
+			'9': 'tab',
+			'13': 'enter',
+			'16': 'shift',
+			'17': 'ctrl',
+			'18': 'alt',
+			'19': 'pause/break',
+			'20': 'caps lock',
+			'27': 'esc',
+			'32': 'space',
+			'33': 'page up',
+			'34': 'page down',
+			'35': 'end',
+			'36': 'home',
+			'37': 'left',
+			'38': 'up',
+			'39': 'right',
+			'40': 'down',
+			'45': 'insert',
+			'46': 'delete',
+			'48': '0',
+			'49': '1',
+			'50': '2',
+			'51': '3',
+			'52': '4',
+			'53': '5',
+			'54': '6',
+			'55': '7',
+			'56': '8',
+			'57': '9',
+			'65': 'a',
+			'66': 'b',
+			'67': 'c',
+			'68': 'd',
+			'69': 'e',
+			'70': 'f',
+			'71': 'g',
+			'72': 'h',
+			'73': 'i',
+			'74': 'j',
+			'75': 'k',
+			'76': 'l',
+			'77': 'm',
+			'78': 'n',
+			'79': 'o',
+			'80': 'p',
+			'81': 'q',
+			'82': 'r',
+			'83': 's',
+			'84': 't',
+			'85': 'u',
+			'86': 'v',
+			'87': 'w',
+			'88': 'x',
+			'89': 'y',
+			'90': 'z',
+			'91': 'left command',
+			'93': 'right command',
+			'96': 'numpad 0',
+			'97': 'numpad 1',
+			'98': 'numpad 2',
+			'99': 'numpad 3',
+			'100': 'numpad 4',
+			'101': 'numpad 5',
+			'102': 'numpad 6',
+			'103': 'numpad 7',
+			'104': 'numpad 8',
+			'105': 'numpad 9',
+			'106': 'numpad *',
+			'107': 'numpad +',
+			'109': 'numpad -',
+			'110': 'numpad .',
+			'111': 'numpad /',
+			'112': 'f1',
+			'113': 'f2',
+			'114': 'f3',
+			'115': 'f4',
+			'116': 'f5',
+			'117': 'f6',
+			'118': 'f7',
+			'119': 'f8',
+			'120': 'f9',
+			'121': 'f10',
+			'122': 'f11',
+			'123': 'f12',
+			'144': 'num lock',
+			'145': 'scroll lock',
+			'182': 'my computer',
+			'183': 'my calculator',
+			'186': ';',
+			'187': '=',
+			'188': ',',
+			'189': '-',
+			'190': '.',
+			'191': '/',
+			'192': '`',
+			'219': '[',
+			'220': '\\',
+			'221': ']',
+			'222': '\'' }
 
-            target.addEventListener('keydown', (e) => {
+			target.addEventListener('keydown', (e) => {
 
-                connection.send('keydown: ' + e.keyCode);
+				connection.send('keydown: ' + e.keyCode);
 
-                if (e.keyCode in codes) {
-                    sendKeyTap(codes[e.keyCode]);
-                }
-            });
-        }
+				if (e.keyCode in codes) {
+					sendKeyTap(codes[e.keyCode]);
+				}
+			});
+		}
 
-        function activate(target) {
-            /*
-            var keys = [];
-            for (var k in target) {
-                keys.push(k);
-            }
-            keys.forEach(k => {
-                if (/^on/.exec(k)) {
-                    // console.log('k', k);
-                    target[k] = (e) => console.log(k);
-                }
-            });
-            return;
-            */
+		function activate(target) {
+			/*
+			var keys = [];
+			for (var k in target) {
+				keys.push(k);
+			}
+			keys.forEach(k => {
+				if (/^on/.exec(k)) {
+					// console.log('k', k);
+					target[k] = (e) => console.log(k);
+				}
+			});
+			return;
+			*/
 
-            var to = null;
-            var changed = false;
+			var to = null;
+			var changed = false;
 
-            var ok = function() {
-                if (!changed) return;
-                console.log('XXX changed? ', changed, target.value);
-                sendString(target.value);
-                target.value = '';
-                to = clearTimeout(to);
-            }
+			var ok = function() {
+				if (!changed) return;
+				console.log('XXX changed? ', changed, target.value);
+				sendString(target.value);
+				target.value = '';
+				to = clearTimeout(to);
+				target.focus();
+			}
 
-            target.addEventListener('keydown', (e) => {
-                // console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code, 'composed : ', e.composed, 'composing', e.isComposing);
-                // console.log('keydown: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
-                connection.send('keydown: ' + e.keyCode);
+			target.addEventListener('keydown', (e) => {
+				// console.log('down', e.keyCode, 'key: ' + e.key + ' code: ' + e.code, 'composed : ', e.composed, 'composing', e.isComposing);
+				// console.log('keydown: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+				connection.send('keydown: ' + e.keyCode);
 
-                switch (e.keyCode) {
-                    case 8:
-                        sendKeyTap('backspace');
-                        // sendKeyTap('delete');
-                        break;
-                    case 13:
-                        sendKeyTap('enter');
-                        break;
-                }
+				switch (e.keyCode) {
+					case 8:
+						sendKeyTap('backspace');
+						// sendKeyTap('delete');
+						break;
+					case 13:
+						sendKeyTap('enter');
+						break;
+				}
 
-                // console.log('val', target.value);
-            });
+				// console.log('val', target.value);
+			});
 
-            target.addEventListener('keyup', (e) => {
-                console.log('keyup: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
-                // console.log('up', e);
-                connection.send('keyup: ' + e.keyCode);
+			target.addEventListener('keyup', (e) => {
+				console.log('keyup: ' + e.keyCode, 'composed : ', e.composed, 'composing', e.isComposing);
+				// console.log('up', e);
+				connection.send('keyup: ' + e.keyCode);
 
-                // if (target.value !== lastValue) {
-                //     console.log('new', target.value);
-                //     lastValue = target.value;
-                // }
+				// if (target.value !== lastValue) {
+				//     console.log('new', target.value);
+				//     lastValue = target.value;
+				// }
 
-                changed = !e.isComposing;
-                if (to) {
-                    clearTimeout(to);
-                }
-                to = setTimeout(ok, 100);
-            });
+				changed = !e.isComposing;
+				if (to) {
+					clearTimeout(to);
+				}
+				to = setTimeout(ok, 150);
+			});
 
-            // use isComposing
+			// use isComposing
 
-            target.addEventListener('input', (e) => {
-                // work with chars and unicodes, not chinese
-                console.log('** Input value: ', target.value);
-                console.log('input: ' + e.keyCode, 'composed : ', e.composed);
-                // target.value = '';
+			target.addEventListener('input', (e) => {
+				// work with chars and unicodes, not chinese
+				console.log('** Input value: ', target.value);
+				console.log('input: ' + e.keyCode, 'composed : ', e.composed);
+				// target.value = '';
 
-                changed = true;
-                if (to) {
-                    clearTimeout(to);
-                }
-                to = setTimeout(ok, 100);
-            })
+				changed = true;
+				if (to) {
+					clearTimeout(to);
+				}
+				to = setTimeout(ok, 150);
+			})
 
-            var lastValue = null;
+			var lastValue = null;
 
-            // target.addEventListener('change', (e) => {
-            //     console.log('change', e);
-            //     connection.send('change: ' + e.keyCode);
-            // });￰
+			// target.addEventListener('change', (e) => {
+			//     console.log('change', e);
+			//     connection.send('change: ' + e.keyCode);
+			// });￰
 
-        }
+		}
 
-        activateKeys(input);
-        activate(input2);
+		activateKeys(input);
+		activate(input2);
 	</script>
 </body>
 </html>
