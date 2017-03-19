@@ -1,3 +1,42 @@
+function sendKeyTap(key) {
+	connection.sendType('kt', {
+		key: key
+	})
+}
+
+function sendString(input) {
+	if (input) connection.sendType('rt', {
+		text: input
+	});
+}
+
+var keys_to_elusive_icons = {
+	'audio_mute': 'el-volume-off',
+	'audio_vol_down': 'el-volume-down',
+	'audio_vol_up': 'el-volume-up',
+	'audio_play': 'el-play',
+	'audio_stop': 'el-stop',
+	'audio_pause': 'el-pause',
+	'audio_prev': 'el-backward', // fast-backward
+	'audio_next': 'el-forward',
+	'audio_rewind': 'el-step-backward',
+	'audio_forward': 'el-step-forward',
+	'audio_repeat': 'el-repeat',
+	'audio_random': 'el-random',
+	'up': 'el-caret-up',
+	'down': 'el-caret-down',
+	'left': 'el-caret-left',
+	'right': 'el-caret-right',
+};
+
+var alias = {
+	'lights_mon_up': 'Screen &#x1f506;', //  ▲
+	'lights_mon_down': 'Screen &#x1f505;', //  ▼
+	'lights_kbd_up': 'Kbd &#x1f506;', //  ▲
+	'lights_kbd_down': 'Kbd &#x1f505;', //  ▼
+	// 'command': 'command ' + hexEncode('⌘'),
+}
+
 var keycodes = {
 	'8': 'backspace',
 	'9': 'tab',
@@ -102,84 +141,84 @@ var keycodes = {
 };
 
 var specials = [
-	"backspace",
-	"delete",
-	"enter",
-	"tab",
-	"escape",
+	'backspace',
+	'delete',
+	'enter',
+	'tab',
+	'escape',
 ]
 
 var directional = [
-	"up",
-	"down",
-	"right",
-	"left",
-	"home",
-	"end",
-	"pageup",
-	"pagedown",
+	'up',
+	'down',
+	'right',
+	'left',
+	'home',
+	'end',
+	'pageup',
+	'pagedown',
 ];
 
 var f_keys = [
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-	"f12",
+	'f1',
+	'f2',
+	'f3',
+	'f4',
+	'f5',
+	'f6',
+	'f7',
+	'f8',
+	'f9',
+	'f10',
+	'f11',
+	'f12',
 ];
 
 var modifiers = [
-	"command",
-	"alt",
-	"control",
-	"shift",
-	"right_shift",
-	"space",
-	"printscreen",
-	"insert",
+	'command',
+	'alt',
+	'control',
+	'shift',
+	'right_shift',
+	'space',
+	'printscreen',
+	'insert',
 ];
 
 var audio = [
-	"audio_mute",
-	"audio_vol_down",
-	"audio_vol_up",
-	"audio_play",
-	"audio_stop",
-	"audio_pause",
-	"audio_prev",
-	"audio_next",
-	"audio_rewind",
-	"audio_forward",
-	"audio_repeat",
-	"audio_random",
+	'audio_mute',
+	'audio_vol_down',
+	'audio_vol_up',
+	'audio_play',
+	'audio_stop',
+	'audio_pause',
+	'audio_prev',
+	'audio_next',
+	'audio_rewind',
+	'audio_forward',
+	'audio_repeat',
+	'audio_random',
 ];
 
 var numpad = [
-	"numpad_0",
-	"numpad_1",
-	"numpad_2",
-	"numpad_3",
-	"numpad_4",
-	"numpad_5",
-	"numpad_6",
-	"numpad_7",
-	"numpad_8",
-	"numpad_9",
+	'numpad_0',
+	'numpad_1',
+	'numpad_2',
+	'numpad_3',
+	'numpad_4',
+	'numpad_5',
+	'numpad_6',
+	'numpad_7',
+	'numpad_8',
+	'numpad_9',
 ];
 
 var lights = [
-	"lights_mon_up",
-	"lights_mon_down",
-	"lights_kbd_toggle",
-	"lights_kbd_up",
-	"lights_kbd_down"
+	'lights_mon_up',
+	'lights_mon_down',
+	'lights_kbd_toggle',
+	'lights_kbd_up',
+	'lights_kbd_down'
 ];
 
 var keys = [
@@ -190,35 +229,51 @@ var keys = [
 	'audio',
 	'numpad',
 	'lights'
-].forEach(key => {
-	const h3 = document.createElement('h3');
-	h3.innerHTML = key;
-	document.body.appendChild(h3);
+]
 
-	const hr = document.createElement('hr');
-	document.body.appendChild(hr);
+function dump() {
+	keys.forEach(key => {
+		const h3 = document.createElement('h3');
+		h3.innerHTML = key;
+		document.body.appendChild(h3);
 
-	const keys = window[key];
-	keys.forEach(name => {
-		var key = document.createElement('button');
-		key.innerText = name;
-		key.onclick = (e) => {
-			sendKeyTap(name);
-			// e.preventDefault();
-			e.stopPropagation();
-		}
-		key.ontouchstart = (e) => {
-			send('touchstart' + name);
-		}
+		const hr = document.createElement('hr');
+		document.body.appendChild(hr);
 
-		key.ontouchend = (e) => {
-			send('touchend' + name);
-		}
+		const keys = window[key];
+		keys.forEach(name => {
+			var key = document.createElement('button');
 
-		key.ontouchcancel = (e) => {
-			send('touchcancel' + name);
-		}
+			var css = keys_to_elusive_icons[name];
+			if (!css) {
+				key.innerHTML = alias[name] || name;
+			} else {
+				var i = document.createElement('i');
+				i.className = 'el ' + css;
+				key.appendChild(i);
+			}
 
-		document.body.appendChild(key);
+			key.onclick = (e) => {
+				sendKeyTap(name);
+				// e.preventDefault();
+				e.stopPropagation();
+			}
+			key.ontouchstart = (e) => {
+				send('touchstart' + name);
+			}
+
+			key.ontouchend = (e) => {
+				send('touchend' + name);
+			}
+
+			key.ontouchcancel = (e) => {
+				send('touchcancel' + name);
+			}
+
+			document.body.appendChild(key);
+		});
 	});
-});
+
+}
+
+dump();

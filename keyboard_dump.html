@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset=“utf-8”>
 	<title>Remote Keyboard</title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+
 	<style type="text/css">
 		html, body {
 			background-color: #2B2f32;
@@ -18,7 +21,7 @@
 			border: 1px solid #22222;
 			box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.30), inset 0 2px 0 0 rgba(255, 255, 255, 0.20);
 			border-radius: 10px;
-			font-size: 16px;
+			font-size: 18px;
 			padding: 16px;
 			outline: 0;
 		}
@@ -32,9 +35,11 @@
 
 </head>
 <body>
+	<link rel="stylesheet" href="vendor/elusive-icons-2.0.0/css/elusive-icons.css">
 	<script src="src/wire.js"></script>
 	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
+	
 	<!--<script src="src/transmitter_example.js"></script>-->
 
 
@@ -71,12 +76,6 @@
 		function ask() {
 			var input = prompt('Say something');
 			sendString(input);
-		}
-
-		function sendString(input) {
-			if (input) connection.sendType('rt', {
-				text: input
-			});
 		}
 
 		function activateKeys(target) {
