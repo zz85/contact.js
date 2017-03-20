@@ -151,8 +151,9 @@ var specials = [
 var directional = [
 	'up',
 	'down',
-	'right',
 	'left',
+	'right',
+
 	'home',
 	'end',
 	'pageup',
@@ -216,20 +217,21 @@ var numpad = [
 var lights = [
 	'lights_mon_up',
 	'lights_mon_down',
-	'lights_kbd_toggle',
 	'lights_kbd_up',
-	'lights_kbd_down'
+	'lights_kbd_down',
+
+	'lights_kbd_toggle',
 ];
 
 var keys = [
+	'lights',
 	'directional',
+	'audio',
 	'specials',
+	'numpad',
 	'f_keys',
 	'modifiers',
-	'audio',
-	'numpad',
-	'lights'
-]
+];
 
 function dump() {
 	keys.forEach(key => {
@@ -253,27 +255,36 @@ function dump() {
 				key.appendChild(i);
 			}
 
-			key.onclick = (e) => {
+			let interval;
+
+			const repeat = () => {
 				sendKeyTap(name);
-				// e.preventDefault();
-				e.stopPropagation();
 			}
+
 			key.ontouchstart = (e) => {
-				send('touchstart' + name);
+				sendKeyTap(name);
+				e.preventDefault();
+				e.stopPropagation();
+
+				if (!interval)
+					interval = setInterval(repeat, 200);
 			}
 
 			key.ontouchend = (e) => {
-				send('touchend' + name);
+				if (interval) {
+					interval = clearInterval(interval);
+				}
 			}
 
 			key.ontouchcancel = (e) => {
-				send('touchcancel' + name);
+				if (interval) {
+					interval = clearInterval(interval);
+				}
 			}
 
 			document.body.appendChild(key);
 		});
 	});
-
 }
 
 dump();
