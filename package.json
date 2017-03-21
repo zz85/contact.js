@@ -7,11 +7,15 @@
     "url": "git@github.com:zz85/contact.js.git",
     "type": "git"
   },
+  "scripts": {
+    "start": "node src/server"
+  },
   "author": "Joshua Koo <zz85nus@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "bonjour": "^3.5.0",
-    "robotjs": "git://github.com/BHamrick1/robotjs.git",
+    "robotjs": "git://github.com/zz85/robotjs.git#ea45808ae0b0f2633d19c96de085a953b2c48276",
+    "uws": "^0.13.0",
     "ws": "^2.0.3"
   }
 }

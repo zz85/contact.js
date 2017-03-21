@@ -1,16 +1,14 @@
 // Start contact.js Websocket Server
 var websockets_port = 8081;
 
-var WebSocketServer = require('ws').Server,
-	wss = new WebSocketServer({port: websockets_port});
-
-var pings = {};
-var connections = [];
+var WebSocketServer = require('uws').Server;
+var pings = {}; // TODO remove
 
 var TouchPadSession = require('./touchpad');
 var Session = require('./session');
 
 var sessions = new Set();
+var wss = new WebSocketServer({ port: websockets_port });
 
 function displayClients() {
 	console.log('Active Sessions', sessions.size);
@@ -49,19 +47,27 @@ wss.on('connection', function(ws) {
 		// }
 	}
 
-	// // Standard bindings?
-	// ws.on('message', processMessage);
+	// Standard bindings?
+	ws.on('message', d => {
+		if (session.handleMessage) {
+			session.handleMessage(d);
+		} else {
+			console.log('session.handleMessage() not implemented');
+		}
+	});
+
+	ws.on('close', function(e) {
+		console.log('socket closed');
+		sessions.delete(session);
+		if (session.onClose) session.onClose(e);
+		displayClients();
+	});
 
 	sessions.add(session);
 	displayClients();
 
 	// ws.send('rr\n[]');
 
-	ws.on('close', function(e) {
-		console.log('socket closed');
-		sessions.delete(session);
-		displayClients();
-	});
 });
 
 // End of contact.js Websocket Server
@@ -81,3 +87,4 @@ wss.on('connection', function(ws) {
 // 			delete pings[p];
 // 	}
 // }, 5000);
+

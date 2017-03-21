@@ -16,14 +16,12 @@ function animate() {
 function update() {
     ctx.save();
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#666';			
-    ctx.fillRect(0, 0, w, h);
+    // ctx.fillStyle = '#666';			
+    // ctx.fillRect(0, 0, w, h);
 
     ctx.fillStyle = 'red';
     ctx.fillText(connection && connection.status, 10, 20);
 
-
-    
     ctx.beginPath();
     ctx.arc(remoteMouseX * w, remoteMouseY * h, 5, 0, 2 * Math.PI, true);
     ctx.fillStyle = "rgba(0, 0, 255, 0.2)";
@@ -68,6 +66,7 @@ function start() {
 
     canvas.width = w;
     canvas.height = h;
+    canvas.style = 'position: absolute; z-index: 10'
 
     ctx = canvas.getContext('2d');
 
@@ -99,4 +98,5 @@ function start() {
     animate();
 }
 
+activateTouch();
 start();

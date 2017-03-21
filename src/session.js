@@ -1,11 +1,5 @@
 var wire = require('./wire');
 
-function abToType(b, Type) {
-	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
-	var array = new Type(ab);
-	return array;
-}
-
 class Session {
 	constructor(ws, sessions, roles, name) {
 		this.ws = ws;
@@ -14,54 +8,11 @@ class Session {
 		this.roles = new Set(roles);
 		this.name = name;
 
-		ws.on('message', data => this.onMessage(data));
-		ws.on('close', e => this.onClose(e));
-
 		this.intervals = [
 			setInterval(() => {
 				this.sendPack('p', [Date.now()]);
 			}, 5000)
 		];
-	}
-
-	onMessage(data) {
-		if (data instanceof Buffer) {
-			var floats = abToType(data, Float64Array);
-
-			var cmdCode = floats[0];
-			var cmd = wire.CODES[cmdCode];
-
-			if (cmd === undefined) {
-				console.log('invalid cmd code', cmd);
-			}
-
-			var ts = floats[1];
-			var coords = floats.subarray(2);
-
-			// console.log('meows', cmd, ts, coords);
-			if (this._lag !== undefined) {
-				if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
-				this._lag++;
-			} else {
-				this._lag = 0;
-			}
-
-			this.processMessage(cmd, coords, data);
-			return;
-		}
-		else if (typeof data !== 'string') {
-			console.log('Oops unknown data type', typeof data, data);
-			return;
-		}
-
-		var msg = data.split('\n');
-		var cmd = msg[0];
-		try {
-			var coords = msg[1] && JSON.parse(msg[1]);
-			this.processMessage(cmd, coords, data);
-		} catch (e) {
-			console.log('Cannot parse string', data);
-		}
 	}
 
 	sendToReceivers(msg) {
@@ -106,6 +57,59 @@ class Session {
 		this.ws = null;
 	}
 
+	handleMessage(data) {
+		if (!this.processMessage) {
+			console.log('session.processMessage() not implemented!');
+		}
+
+		if (data instanceof Buffer || data instanceof ArrayBuffer) {
+			if (data instanceof Buffer) {
+				var ab = abToType(data);
+			} else {
+				// uws buffer handling
+				var ab = data;
+			}
+
+			var floats = fromArrayBuffer(ab, Float64Array);
+
+			var cmdCode = floats[0];
+			var cmd = wire.CODES[cmdCode];
+
+			if (cmd === undefined) {
+				console.log('invalid cmd code', cmd);
+			}
+
+			var ts = floats[1];
+			var coords = floats.subarray(2);
+
+			// console.log('meows', cmd, ts, coords);
+			if (this._lag !== undefined) {
+				if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
+				this._lag++;
+			} else {
+				this._lag = 0;
+			}
+
+			this.processMessage(cmd, coords, data);
+			return;
+		}
+		else if (typeof data !== 'string') {
+			console.log('Oops unknown data type', typeof data, data);
+			return;
+		}
+
+		var msg = data.split('\n');
+		var cmd = msg[0];
+
+		try {
+			var coords = msg[1] && JSON.parse(msg[1]);
+		} catch (e) {
+			console.log('Cannot parse string', data);
+		}
+
+		this.processMessage(cmd, coords, data);
+	}
+
 	processMessage(cmd, params, data) {
 		// console.log('cmd, params', cmd, params, this.roles);
 		// TODO - unify clients and use traits / ECS.
@@ -130,7 +134,7 @@ class Session {
 				this.height = params[1];
 
 				this.sendToRole(
-					'r\n['  + params[0] + ',' + params[1] + ']', 
+					'r\n['  + params[0] + ',' + params[1] + ']',
 					'receiver'
 				);
 				break;
@@ -143,6 +147,16 @@ class Session {
 		}
 
 	}
+}
+
+function abToType(b, Type) {
+	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+	return ab;
+}
+
+function fromArrayBuffer(ab, Type) {
+	var array = new Type(ab);
+	return array;
 }
 
 module.exports = Session;

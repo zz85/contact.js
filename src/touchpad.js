@@ -1,5 +1,7 @@
 var robot = require('robotjs');
 var wire = require('./wire');
+var screenshare = require('./screenshare');
+var Session = require('./session');
 
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
@@ -9,31 +11,11 @@ var MAX_SPEED = 5;
 // - remote mouse control
 // - server mouse reporting to transmitter
 
-function abToType(b, Type) {
-	var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
-	var array = new Type(ab);
-	return array;
-}
-
-class TouchPadSession {
+class TouchPadSession extends Session {
 	constructor(ws, sessions, roles) {
-		this.ws = ws;
-		this.sessions = sessions;
-		this.roles = new Set(roles);
+		super(ws, sessions, roles);
 
-		this.speed = MIN_SPEED;		
-
-		ws.on('message', data => this.onMessage(data));
-		ws.on('close', e => this.onClose(e));
-
-		this.updateMouse();
-
-		this.intervals = [
-			setInterval(() => this.onInterval(), 1000 / 60),
-			setInterval(() => {
-				this.sendPack('p', [Date.now()]);
-			}, 5000)
-		];
+		this.speed = MIN_SPEED;
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
@@ -53,7 +35,7 @@ class TouchPadSession {
 
 		var imgView = new Uint8Array(buffer, 20, imgBytes);
 		imgView.set(screen.image);
-		
+
 		this.sendRaw(buffer);
 	}
 
@@ -119,43 +101,6 @@ class TouchPadSession {
 		}
 
 		return 0;
-	}
-
-	onMessage(data) {
-		if (data instanceof Buffer) {
-			var floats = abToType(data, Float64Array);
-
-			var cmdCode = floats[0];
-			var cmd = wire.CODES[cmdCode];
-
-			if (cmd === undefined) {
-				console.log('invalid cmd code', cmd);
-			}
-
-			var ts = floats[1];
-			var coords = floats.subarray(2);
-
-			// console.log('meows', cmd, ts, coords);
-			if (this._lag !== undefined) {
-				if (this._lag % 10000 === 0) console.log('lag', Date.now() - ts);
-				this._lag++;
-			} else {
-				this._lag = 0;
-			}
-
-			this.processMessage(cmd, coords, data);
-			return;
-		}
-		else if (typeof data !== 'string') {
-			console.log('Oops unknown data type', typeof data, data);
-			return;
-		}
-
-		var msg = data.split('\n');
-		var cmd = msg[0];
-		var coords = msg[1] && JSON.parse(msg[1]);
-
-		this.processMessage(cmd, coords, data);
 	}
 
 	processMessage(cmd, coords, data) {
@@ -230,50 +175,34 @@ class TouchPadSession {
 			case 'so':
 				this.sendToReceivers(data);
 				break;
+			case 'sr':
+				screenshare.ffmpeg.stop(
+					() => screenshare.ffmpeg.start('screenshare', coords.scale)
+				);
+				break;
+			case 'wr':
+				console.log('wr!');
+				screenshare.ffmpeg.stop(
+					() => screenshare.ffmpeg.start('webcam', coords.scale)
+				);
+				break;
+			case 'rt':
+				console.log('type', coords.text);
+				robot.typeString(coords.text);
+				// keyToggle
+				break;
+			case 'kt':
+				try {
+					robot.keyTap(coords.key);
+				} catch (e) {
+					console.log(coords.key, 'is not supported', e);
+				}
+				break;
 			default:
 				// We just dump stuff for logging
 				console.log(cmd);
 				break;
 		}
-	}
-
-	sendToReceivers(msg) {
-		this.sendToRole(msg, 'receiver');
-	}
-
-	sendToRole(msg, role) {
-		for (let session of this.sessions) {
-			if (session.roles.has(role)) {
-				session.sendRaw(msg);
-			}
-		}
-	}
-
-
-
-	send(cmd, data) {
-		var payload = cmd + '\n' + JSON.stringify(data);
-		this.sendRaw(payload);
-	}
-
-	sendRaw(payload) {
-		if (this.ws) {
-			this.ws.send(payload, (e) => {
-				if (e) console.log('Cannot send message', payload, e);
-			});
-		}
-	}
-
-	sendPack(cmd, array) {
-		var cmdCode = wire.WIRE[cmd];
-		if (cmdCode === undefined) {
-			console.log('Warning, unknown cmd', cmd);
-		}
-
-		var ts = Date.now();
-
-		var floats = new Float64Array([cmdCode, ts].concat(array));
-		this.sendRaw(floats);
 	}
 
 	onInterval() {

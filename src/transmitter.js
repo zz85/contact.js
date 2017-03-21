@@ -2,12 +2,11 @@
 
 var remoteMouseX, remoteMouseY;
 
-var width, height, remoteWidth, remoteHeight;
+var width, height, remoteWidth, remoteHeight;	
 
 var handler = {
 	onOpen: function(e) {
 		sendDimension();
-		// send('devicemotion' + typeof(window.DeviceMotionEvent));
 	},
 
 	onError: function (e) {
@@ -21,7 +20,7 @@ var handler = {
 	onMessage: function(cmd, params) {
 		switch (cmd) {
 			case 'p':
-				sendPack('pp', [ params[0] ])
+				sendPack('pp', params);
 				break;
 			// case 'r':
 			// 	remoteWidth = params[0];
@@ -72,7 +71,6 @@ var handler = {
 			return true;
 		}
 	},
-
 
 	onError: function(e) {
 		console.log('error', e);
@@ -131,51 +129,47 @@ function setLast(touches) {
 	}
 }
 
-window.addEventListener('touchend', function(event) {
-	touches = event.touches;
-	last.time = 0;
-	sendPack('te', convert(touches));
-});
+function activateTouch() {
+	var target = window;
 
-window.addEventListener('touchmove', function(event) {
-	event.preventDefault();
-	touches = event.touches;
-	setLast(touches);
-	sendPack('tm', convert(touches));
-});
+	target.addEventListener('touchend', function(event) {
+		touches = event.touches;
+		last.time = 0;
+		sendPack('te', convert(touches));
+	});
 
-
-window.addEventListener('touchforcechange', function(event) {
-	// event.preventDefault();
-	touches = event.touches;
-	// setLast(touches);
-	// send('tf\n' + convert(touches));
-
-	var forces = [];
-
-	for (let i = 0; i < touches.length; i++) {
-		forces.push(touches[i].force);
-	}
-
-	sendPack('tf', forces);
-});
+	target.addEventListener('touchmove', function(event) {
+		event.preventDefault();
+		touches = event.touches;
+		setLast(touches);
+		sendPack('tm', convert(touches));
+	});
 
 
-window.addEventListener('touchstart', function(event) {
-	touches = event.touches;
-	setLast(touches);
-	sendPack('ts', convert(touches));
-});
+	target.addEventListener('touchforcechange', function(event) {
+		// event.preventDefault();
+		touches = event.touches;
+		var forces = [];
 
-window.addEventListener('touchcancel', function(event) {
-	touches = event.touches;
-	sendPack('tc', convert(touches));
-});
+		for (let i = 0; i < touches.length; i++) {
+			forces.push(touches[i].force);
+		}
 
-window.addEventListener('resize', sendDimension);
+		sendPack('tf', forces);
+	});
 
-function tilt(a, b) {
-	send('tilt [' + a + ', ' + b + ']');
+	target.addEventListener('touchstart', function(event) {
+		touches = event.touches;
+		setLast(touches);
+		sendPack('ts', convert(touches));
+	});
+
+	target.addEventListener('touchcancel', function(event) {
+		touches = event.touches;
+		sendPack('tc', convert(touches));
+	});
+
+	target.addEventListener('resize', sendDimension);
 }
 
 // hello in 50 languages.
@@ -184,7 +178,7 @@ function tilt(a, b) {
 // TODO
 // Joystick controller?
 
-// sensors
+// Other possible sensors?
 // 1. touch screen + force
 // 2. video + audio
 // 3. orientation

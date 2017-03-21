@@ -99,6 +99,9 @@ function Connection(target, handler) {
 		if (ws && ready) ws.send(e);
 	}
 
+	this.sendType = function(cmd, object) {
+		this.send(cmd + '\n' + JSON.stringify(object));
+	}
 
 	this.sendPack = function sendPack(cmd, array) {
 		var cmdCode = WIRE[cmd];

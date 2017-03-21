@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Screensharing</title>
+	<style type="text/css">
+		html, body {
+			background-color: #111;
+			text-align: center;
+		}
+	</style>
+
+</head>
+<body>
+	<canvas id="video-canvas"></canvas>
+	<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
+	<script type="text/javascript">
+		var canvas = document.getElementById('video-canvas');
+		var url = 'ws://'+document.location.hostname+':8082/';
+		var player = new JSMpeg.Player(url, {canvas: canvas});
+	</script>
+
+    <script src="src/wire.js"></script>
+	<script src="src/connection.js"></script>
+	<script src="src/transmitter.js"></script>
+	<script src="src/transmitter_example.js"></script>
+	<script type="text/javascript">
+		var target = 'ws://' + location.hostname + ':8081/touchpad';
+		var connection = new Connection(target, handler);
+		connection.open();
+
+        activateTouch();
+
+        var scale = '.75';
+        var mode = 'sr';
+
+        function screenshare() {
+            mode = 'sr';
+            resizeStream();
+        }
+
+        function resizeStream() {
+            connection.sendType(mode, {
+                scale: scale
+            });
+
+            // TODO server should broadcast request to resize
+            setTimeout(() => {
+                player.video.hasSequenceHeader = false
+            }, 500);
+        }
+
+        function webcam() {
+            mode = 'wr';
+            resizeStream();
+        }
+
+        function setScale(s) {
+            scale = s;
+            resizeStream();
+        }
+
+        function ask() {
+            var input = prompt('Say something');
+            if (input) connection.sendType('rt', {
+                text: input
+            })
+        }
+
+        function activate(target) {
+            target.addEventListener('keydown', (e) => {
+                console.log('down', e);
+                connection.send('key: ' + e.key + ' code: ' + e.code);
+            });
+
+            target.addEventListener('keyup', (e) => {
+                console.log('up', e);
+            });
+        }
+	</script>
+
+
+    <div style="position: fixed; bottom: 0; left: 0; z-index: 50; padding: 10px;">
+        <button onclick="screenshare()">Request Screenshare</button>
+        <button onclick="webcam()">Request Webcam</button>
+        <!--<button onclick="setScale('double')">Zoom x2</button>-->
+        <button onclick="setScale('')">Zoom x1</button>
+        <button onclick="setScale('.75')">Zoom x0.75</button>
+        <button onclick="setScale('half')">Zoom x0.5</button>
+        <button onclick="setScale('quarter')">Zoom x0.25</button>
+        <button onclick="setScale('720p')">Zoom 720p</button>
+
+        <button onclick="ask()">Type something</button>
+        <input onfocus="activate(this)"/>
+        <textarea></textarea>
+
+        <!--TODOS
+        <button>Left</button>
+        <button>Right</button>
+        <button>Up</button>
+        <button>Down</button>
+        Enter
+        Backspace
+        Cmd-Tab
+
+        ADD mini typeboard here.
+        -->
+
+    </div>
+</body>
+</html>

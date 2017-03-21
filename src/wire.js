@@ -18,6 +18,10 @@ var CMDS = {
 	'so': 'screen orientation [-90, 0, 90]',
 	'sc': 'screen capture',
 	'si': 'screen image',
+	'sr': 'screen share request',
+	'wr': 'web cam request',
+	'rt': 'remote text (send text over)',
+	'kt': 'send key tab {key}',
 	// TODO
 	'gr': 'generic request',
 };
