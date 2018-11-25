@@ -14,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "bonjour": "^3.5.0",
-    "robotjs": "git://github.com/hristoterezov/robotjs.git",
+    "robotjs": "https://github.com/octalmage/robotjs",
     "uws": "^8.14.1",
     "ws": "^2.0.3"
   }

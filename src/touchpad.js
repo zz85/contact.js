@@ -19,7 +19,8 @@ class TouchPadSession extends Session {
 
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
-		this.sy = 0;
+
+		setInterval(() => this.onInterval(), 25);
 	}
 
 	sendScreen() {
@@ -84,24 +85,63 @@ class TouchPadSession extends Session {
 		// console.log('move', tx, ty);
 	}
 
-	checkScrollMovement(coords, last) {
-		if (coords.length < 4 || !last || last.length < 4) return 0;
+	checkScrollMovement(coords) {
+		// 2 fingers
+		if (coords.length < 4) return 0;
+
+		const last = this.lastScroll;
+		if (!last) {
+			this.lastScroll = [coords[0], coords[1], coords[2], coords[3]];
+			return 0;
+		}
 
 		const dx1 = last[0] - coords[0];
 		const dy1 = last[1] - coords[1];
 		const dx2 = last[2] - coords[2];
 		const dy2 = last[3] - coords[3];
 
+		last[0] = coords[0];
+		last[1] = coords[1];
+		last[2] = coords[2];
+		last[3] = coords[3];
+
+		console.log('dys', coords, last, dy1, dy2);
+
+		// amptitude of y movements
+
+		const ay1 = Math.abs(dy1);
+		const ay2 = Math.abs(dy2); 
+		if (ay1 > 0 || ay2 > 0) {
+			// let ry = ay1 > ay2 ? dy1 : dy2;
+
+			let ry =  dy1 * 0.5 + dy2 * 0.5;
+
+			return ry;
+		}
+
+		return 0;
+
+
+
+		// distance travelled of finger 1 and 2
 		const d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 		const d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
+		// // distance of fingers moving closer to each other
 		const vx = Math.abs(dx2 - dx1);
 		const vy = Math.abs(dy2 - dy1);
 		const vd = d2 - d1;
 
-		// console.log(dx1, dy1, 'diff', vd, vx, vy);
+		// results
+		let rx = vx < 5 ? dx1 : 0;
+		let ry = vy > 5 ? dy1 : 0;
 
-		robot.scrollMouse(vx < 5 ? dx1 : 0, vy > 5 ? dy1 : 0);
+		// scroll left-right
+		// scroll up-down
+
+		
+		
+		// robot.scrollMouse(rx, ry);
 
 		if (vy < 5) {
 			return dy1;
@@ -141,15 +181,18 @@ class TouchPadSession extends Session {
 				this.down = Date.now();
 				break;
 			case 'tm':
-				this.sy = this.checkScrollMovement(coords, this.last);
-				if (this.sy) this.scrollYspeed = 0.5 * this.scrollYspeed + 0.5 * this.sy;
+				var sy = this.checkScrollMovement(coords);
+
+				// if (sy) {
+					// this.scrollYspeed += sy * 2;
+					this.scrollYspeed = this.scrollYspeed * 0.9 + sy * 1.5;
+				// }
 
 				if (!this.moved && Date.now() - this.down > 250) {
 					robot.mouseToggle('down');
 				}
 				this.moved = true;
 
-				this.last = coords;
 				break;
 			case 'te':
 				this.last = null;
@@ -158,6 +201,7 @@ class TouchPadSession extends Session {
 					robot.mouseToggle('up');
 					this.clicked = true;
 				}
+				this.lastScroll = null;
 
 				break;
 			case 'mm':
@@ -213,10 +257,14 @@ class TouchPadSession extends Session {
 	}
 
 	onInterval() {
-		this.scrollYspeed *= 0.9;
-		// if (Math.abs(this.scrollYspeed) > 0.1)
-		// 	robot.scrollMouse(Math.abs(this.scrollYspeed) * 0.5, this.scrollYspeed < 0 ? 'up' : 'down');
-
+		if (Math.abs(this.scrollYspeed) >= 1) {
+			console.log('scrolling', this.scrollYspeed);
+			robot.scrollMouse(0, -this.scrollYspeed | 0);
+			this.scrollYspeed *= 0.85;
+		} else {
+			this.scrollYspeed = 0;
+		}
+			
 		this.updateMouse();
 		this.sendPack('mc', [this.mouse.x / this.screenSize.width, this.mouse.y / this.screenSize.height])
 	}

@@ -139,7 +139,8 @@ function activateTouch() {
 	});
 
 	target.addEventListener('touchmove', function(event) {
-		event.preventDefault();
+		// event.preventDefault();
+		// if (event.scale !== 1) { event.preventDefault(); }
 		touches = event.touches;
 		setLast(touches);
 		sendPack('tm', convert(touches));

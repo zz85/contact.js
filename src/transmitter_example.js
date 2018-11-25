@@ -8,7 +8,6 @@ var touches = [];
 var touchStart = true;
 var connection;
 
-
 function animate() {
     requestAnimationFrame(animate);
     update();
@@ -72,22 +71,25 @@ function start() {
 
     document.body.appendChild(canvas);
 
-    window.addEventListener('touchend', function(event) {
+    var target = canvas; // window
+
+    target.addEventListener('touchend', function(event) {
         if (event.touches.length==0)
-        touchStart = false;
+            touchStart = false;
         touches = event.touches;
     }, false);
 
-    window.addEventListener('touchmove', function(event) {
+    target.addEventListener('touchmove', function(event) {
         touches = event.touches;
     }, false);
 
-    window.addEventListener('touchstart', function(event) {
+    target.addEventListener('touchstart', function(event) {
+        event.preventDefault()
         touches = event.touches;
         touchStart = true;
     }, false);
 
-    window.addEventListener('resize', function(event) {
+    target.addEventListener('resize', function(event) {
         w = window.innerWidth;
         h = window.innerHeight;
         canvas.width = w;
