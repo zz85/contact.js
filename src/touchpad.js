@@ -40,6 +40,7 @@ class TouchPadSession extends Session {
 	}
 
 	updateMouse() {
+		// periodically poll the system for mouse coordinates
 		// console.log('updateMouse');
 		var mouse = robot.getMousePos();
 		this.mouse = {
@@ -51,6 +52,7 @@ class TouchPadSession extends Session {
 	}
 
 	move(dx, dy, dt) {
+		console.log('dx, dy, dt', dx, dy, dt);
 		var mouse = this.mouse;
 		var scale = 0.004;
 
@@ -65,6 +67,11 @@ class TouchPadSession extends Session {
 		var ty = mouse.y + vy;
 
 		this.speed = speed;
+
+
+		this.mouse.x = tx;
+		this.mouse.y = ty;
+		// ideally we shouldn't clamp - and let the os handle it.
 		this.mouse.x = Math.min(Math.max(0, tx), this.screenSize.width);
 		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
 

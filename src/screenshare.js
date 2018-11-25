@@ -21,7 +21,8 @@ class ScreenShare extends EventEmitter {
             -f avfoundation
                 -i 0:0`;
 
-        var screen_input = `-f avfoundation -i 1`;
+        var DISPLAY_NO = 1; // change this
+        var screen_input = `-f avfoundation -i ${DISPLAY_NO}`;
 
         var input = mode === 'webcam' ? webcam_input : screen_input;
 

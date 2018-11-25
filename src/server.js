@@ -109,6 +109,7 @@ var port = http_port;
 http.createServer(handleRequest).listen(port);
 
 var hostname = require('os').hostname();
+var bonjour = require('bonjour')()
 
 require('dns').lookup(hostname, function (err, addr, fam) {
 	console.log('Hostname http://' + hostname  + ((port === 80) ? '' : ':') + port + '/');
@@ -119,6 +120,17 @@ require('dns').lookup(hostname, function (err, addr, fam) {
 console.log('Simple nodejs server has started...');
 console.log('Base directory at ' + currentDir);
 
-var bonjour = require('bonjour')()
-// advertise an HTTP server on port
+
+// // advertise an HTTP server on port
 bonjour.publish({ name: 'Contact Server', type: 'http', port: http_port })
+
+process.on('SIGINT', function() {
+    console.log("Caught interrupt signal");
+
+    bonjour.unpublishAll(() => {
+		console.log('Unpublished bonjour services');
+		bonjour.destroy();
+
+		setTimeout(() => process.exit(), 1000);
+	})
+});

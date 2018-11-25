@@ -8,6 +8,7 @@ var touches = [];
 var touchStart = true;
 var connection;
 
+
 function animate() {
     requestAnimationFrame(animate);
     update();
@@ -15,6 +16,8 @@ function animate() {
 
 function update() {
     ctx.save();
+    var dpr = window.devicePixelRatio;
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
     // ctx.fillStyle = '#666';			
     // ctx.fillRect(0, 0, w, h);
@@ -27,13 +30,13 @@ function update() {
     ctx.fillStyle = "rgba(0, 0, 255, 0.2)";
     ctx.fill();
 
-    if (!touchStart) return;
+    if (!touchStart) return ctx.restore();
 
     var i, len, px, py, touch;
     for (i=0, len = touches.length; i<len; i++) {
         touch = touches[i];
-        px = touch.pageX;
-        py = touch.pageY;
+        px = touch.clientX;
+        py = touch.clientY;
 
         ctx.beginPath();
         ctx.arc(px, py, 20, 0, 2 * Math.PI, true);
@@ -54,19 +57,16 @@ function update() {
 }
 
 function start() {
-
-    // if (! ('ontouchmove' in window)) {
-    // 	alert('sorry, no touch support detected! try using a mobile device');
-    // 	return;
-    // }
-
     w = window.innerWidth;
     h = window.innerHeight;
     canvas = document.createElement('canvas');
 
-    canvas.width = w;
-    canvas.height = h;
+    var dpr = window.devicePixelRatio;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
     canvas.style = 'position: absolute; z-index: 10'
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
 
     ctx = canvas.getContext('2d');
 
@@ -79,7 +79,6 @@ function start() {
     }, false);
 
     window.addEventListener('touchmove', function(event) {
-        // event.preventDefault();
         touches = event.touches;
     }, false);
 
