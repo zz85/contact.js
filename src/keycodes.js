@@ -215,11 +215,12 @@ var numpad = [
 ];
 
 var lights = [
-	'lights_mon_up',
 	'lights_mon_down',
-	'lights_kbd_up',
+	'lights_mon_up',
+	
 	'lights_kbd_down',
-
+	'lights_kbd_up',
+	
 	'lights_kbd_toggle',
 ];
 
