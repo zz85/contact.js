@@ -13,6 +13,19 @@ const SCROLL_DAMPENING = 0.90; // ran 1000 / 24 ~= 40hz
 // - remote mouse control
 // - server mouse reporting to transmitter
 
+// multiple implementations, robotjs, electron, cliclick, hammerspoon
+var RobotMover = {
+	getMouse: () => {
+		const mouse = robot.getMousePos();
+		return {
+			x: mouse.x,
+			y: mouse.y
+		};
+	},
+	moveMouse: (x, y) => robot.moveMouse(x, y)
+}
+
+var mover = require('./screen');
 
 /**
  * TODO isolate implementation details of system events / commands
@@ -54,12 +67,7 @@ class TouchPadSession extends Session {
 	updateMouse() {
 		// periodically poll the system for mouse coordinates
 		// console.log('updateMouse');
-		var mouse = robot.getMousePos();
-		this.mouse = {
-			x: mouse.x,
-			y: mouse.y
-		};
-
+		this.mouse = mover.getMouse()
 		this.screenSize = robot.getScreenSize();
 	}
 
@@ -80,9 +88,9 @@ class TouchPadSession extends Session {
 
 		this.speed = speed;
 
-
 		this.mouse.x = tx;
 		this.mouse.y = ty;
+
 		// ideally we shouldn't clamp - and let the os handle it.
 		this.mouse.x = Math.min(Math.max(0, tx), this.screenSize.width);
 		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
@@ -90,7 +98,9 @@ class TouchPadSession extends Session {
 		if (this.forceDown) {
 			robot.dragMouse(this.mouse.x, this.mouse.y);
 		}
-		else robot.moveMouse(this.mouse.x, this.mouse.y);
+		else {
+			mover.moveMouse(this.mouse.x, this.mouse.y);
+		}
 		// console.log('currentSpeed', currentSpeed, '->', speed);
 		// console.log('vx', vx, vy);
 		// console.log('move', tx, ty);

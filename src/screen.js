@@ -6,36 +6,48 @@ $.framework('CoreFoundation')
 $.framework('CoreGraphics')
 // Cocoa, IOKit
 
-screens = $.NSScreen('screens')
-screens_count = screens('count')
-console.log(screens_count)
+function getScreens() {
+    const screens = $.NSScreen('screens')
+    const screens_count = screens('count')
+    console.log(screens_count)
 
-for (let i = 0; i < screens_count; i++) {
-    const aScreen = screens('objectAtIndex', i)
+    const displays = []
 
-    console.log('Screen ' + i)
-    const backingScaleFactor = aScreen('backingScaleFactor')
+    for (let i = 0; i < screens_count; i++) {
+        const aScreen = screens('objectAtIndex', i)
 
-    const frame = aScreen('frame')
-    const description = aScreen('deviceDescription');
-    
-    // const visibleFrame = aScreen('visibleFrame')
-    // console.log(aScreen.methods())
-    console.log()
-    console.log(description)
-    // console.log('frame', frame)
-    // console.log(description('class'), description.methods())
-    console.log(description('objectForKey', $('NSDeviceSize')))
-    e = description('keyEnumerator')
-    while (key = e('nextObject')) {
-        console.log(key, description('objectForKey', key))
+        console.log('Screen ' + i)
+        const backingScaleFactor = aScreen('backingScaleFactor')
+
+        const frame = aScreen('frame')
+        const description = aScreen('deviceDescription');
+        
+        // const visibleFrame = aScreen('visibleFrame')
+        // console.log(aScreen.methods())
+        // console.log(description('class'), description.methods())
+        const deviceSize = description('objectForKey', $('NSDeviceSize'))
+        console.log('deviceSize', deviceSize('class'), deviceSize.methods(), deviceSize('_value'))
+        const screenNumber = description('objectForKey', $('NSScreenNumber'))
+
+        let e = description('keyEnumerator')
+        while (key = e('nextObject')) {
+            console.log(key, description('objectForKey', key))
+        }
+
+        
+
+        // NSDeviceResolution, NSDeviceSize, NSScreenNumber
+        console.log('scaling', backingScaleFactor)
+        displays.push({
+            w: deviceSize.width,
+            h: deviceSize.height,
+            scale: backingScaleFactor,
+            id: screenNumber
+        })
     }
 
-    // NSDeviceResolution, NSDeviceSize, NSScreenNumber
-    console.log('scaling', backingScaleFactor)
+    return displays;
 }
-
-// console.log('screens', screens);
 
 /*
 // https://github.com/Hammerspoon/hammerspoon/blob/master/extensions/screen/internal.m
@@ -90,8 +102,15 @@ function mouseMoveSilently(x, y) {
 
 setInterval(() => {
     // moveMouse(Math.random() * 1000, Math.random() * 1000)
-    mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
+    // mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
     console.log(getMouse())
 }, 500);
+
+console.log(getScreens())
+
+module.exports = {
+    moveMouse: mouseMoveSilently,
+    getMouse
+}
 
 
