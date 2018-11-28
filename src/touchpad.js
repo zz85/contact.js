@@ -179,6 +179,10 @@ class TouchPadSession extends Session {
 				this.updateMouse();
 				this.last = coords;
 				this.down = Date.now();
+				if (coords.length === 2 && this._isScrolling()) {
+					// stop scrolling
+					this.scrollYspeed = 0;
+				}
 				break;
 			case 'tm':
 				var sy = this.checkScrollMovement(coords);
@@ -205,7 +209,8 @@ class TouchPadSession extends Session {
 
 				break;
 			case 'mm':
-				this.move(coords[0], coords[1], coords[2]);
+				if (!this._isScrolling())
+					this.move(coords[0], coords[1], coords[2]);
 				break;
 			case 'tc':
 				break;
@@ -256,8 +261,12 @@ class TouchPadSession extends Session {
 		}
 	}
 
+	_isScrolling() {
+		return Math.abs(this.scrollYspeed) >= 1;
+	}
+
 	onInterval() {
-		if (Math.abs(this.scrollYspeed) >= 1) {
+		if (this._isScrolling()) {
 			console.log('scrolling', this.scrollYspeed);
 			robot.scrollMouse(0, -this.scrollYspeed | 0);
 			this.scrollYspeed *= 0.85;
