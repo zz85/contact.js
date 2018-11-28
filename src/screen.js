@@ -53,8 +53,6 @@ for (let i = 0; i < screens_count; i++) {
         CGSGetDisplayModeDescriptionOfLength(screen_id, i, &mode, sizeof(mode));
 */
 
-// https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc
-// CGWarpMouseCursorPosition
 
 // https://github.com/BlueM/cliclick/tree/master/Actions
 
@@ -83,8 +81,16 @@ function moveMouse(x, y) {
     $.CFRelease(moveEventRef);
 }
 
+function mouseMoveSilently(x, y) {
+    // uses CGWarpMouseCursorPosition
+    // https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc
+
+    $.CGWarpMouseCursorPosition($.CGPointMake(x, y))
+}
+
 setInterval(() => {
-    moveMouse(Math.random() * 1000, Math.random() * 1000)
+    // moveMouse(Math.random() * 1000, Math.random() * 1000)
+    mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
     console.log(getMouse())
 }, 500);
 
