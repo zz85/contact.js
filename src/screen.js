@@ -100,17 +100,26 @@ function mouseMoveSilently(x, y) {
     $.CGWarpMouseCursorPosition($.CGPointMake(x, y))
 }
 
+function scroll(x, y) {
+	const event = $.CGEventCreateScrollWheelEvent(
+        null, $.kCGScrollEventUnitPixel, 2, y, x);
+	$.CGEventPost($.kCGHIDEventTap, event);
+
+    $.CFRelease(event);
+}
+
 setInterval(() => {
     // moveMouse(Math.random() * 1000, Math.random() * 1000)
     // mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
     console.log(getMouse())
+    // scroll(0, 100)
 }, 500);
 
 console.log(getScreens())
 
 module.exports = {
     moveMouse: mouseMoveSilently,
-    getMouse
+    getMouse,
+    scroll
 }
-
 

@@ -15,6 +15,9 @@ const SCROLL_DAMPENING = 0.90; // ran 1000 / 24 ~= 40hz
 
 // multiple implementations, robotjs, electron, cliclick, hammerspoon
 var RobotMover = {
+	scroll: (x, y) => {
+		robot.scrollMouse(x, y)
+	},
 	getMouse: () => {
 		const mouse = robot.getMousePos();
 		return {
@@ -22,7 +25,7 @@ var RobotMover = {
 			y: mouse.y
 		};
 	},
-	moveMouse: (x, y) => robot.moveMouse(x, y)
+	moveMouse: (x, y) => robot.moveMouse(x, y),
 }
 
 var mover = require('./screen');
@@ -294,7 +297,7 @@ class TouchPadSession extends Session {
 
 	onInterval() {
 		if (this._isScrolling()) {
-			robot.scrollMouse(0, -this.scrollYspeed | 0);
+			mover.scroll(0, -this.scrollYspeed | 0);
 			this.scrollYspeed *= SCROLL_DAMPENING;
 		} else {
 			this.scrollYspeed = 0;
