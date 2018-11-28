@@ -3,8 +3,11 @@ var $ = require('nodobjc')
 
 // 
 
-$.import('Foundation') // foundation for strings/arrays
+$.framework('Foundation') // foundation for strings/arrays
 $.framework('Appkit') // nscreens
+$.framework('CoreFoundation')
+$.framework('CoreGraphics')
+// Cocoa, IOKit
 // coregraphics?
 
 screens = $.NSScreen('screens')
@@ -33,3 +36,30 @@ console.log(screen0('backingScaleFactor'))
         CGSDisplayMode mode;
         CGSGetDisplayModeDescriptionOfLength(screen_id, i, &mode, sizeof(mode));
 */
+
+// https://developer.apple.com/documentation/coregraphics/1456387-cgwarpmousecursorposition?language=objc
+// CGWarpMouseCursorPosition
+
+// https://github.com/BlueM/cliclick/tree/master/Actions
+
+/*
+
+ CGEventRef ourEvent = CGEventCreate(NULL);
+    CGEventGetLocation(ourEvent);
+    CFRelease(ourEvent);
+*/
+
+function getMouse() {
+    const ref = $.CGEventCreate(null)
+    const pos = $.CGEventGetLocation(ref)
+    $.CFRelease(ref)
+
+    return {
+        x: pos.x,
+        y: pos.y
+    }
+}
+
+setInterval(() => console.log(getMouse()), 0);
+
+
