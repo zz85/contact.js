@@ -1,5 +1,10 @@
 // message protocol commands
 
+var bla = {
+	'TOUCH_START': 'ts',
+	'TOUCH_MOVE': 'tm',
+}
+
 var CMDS = {
 	'p': 'ping (request) [token]',
 	'pp': 'ping reply [token]',

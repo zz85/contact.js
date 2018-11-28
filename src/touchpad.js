@@ -13,6 +13,15 @@ const SCROLL_DAMPENING = 0.90; // ran 1000 / 24 ~= 40hz
 // - remote mouse control
 // - server mouse reporting to transmitter
 
+
+/**
+ * TODO isolate implementation details of system events / commands
+ */
+
+function doMouseDown() {
+
+}
+
 class TouchPadSession extends Session {
 	constructor(ws, sessions, roles) {
 		super(ws, sessions, roles);
@@ -22,7 +31,7 @@ class TouchPadSession extends Session {
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
 
-		setInterval(() => this.onInterval(), 25);
+		this.intervals = [ setInterval(() => this.onInterval(), 25) ];
 	}
 
 	sendScreen() {
@@ -107,7 +116,7 @@ class TouchPadSession extends Session {
 		last[2] = coords[2];
 		last[3] = coords[3];
 
-		console.log('dys', coords, last, dy1, dy2);
+		// console.log('dys', coords, last, dy1, dy2);
 
 		// amptitude of y movements
 
@@ -153,7 +162,7 @@ class TouchPadSession extends Session {
 	}
 
 	processMessage(cmd, coords, data) {
-		// TODO support scrolling / pitch-zoom / double clicking / right click
+		// TODO  / pitch-zoom / double clicking / right click
 		// https://github.com/zingchart/zingtouch https://github.com/davidflanagan/Gestures
 		// TODO MOUSE recording.
 		// TODO add remote screen sharing? screen.capture
@@ -163,12 +172,14 @@ class TouchPadSession extends Session {
 				// TODO implement me!
 				// Also, touch move should use the latest fingers
 				// console.log('forces', coords);
+
+				var FORCE_TOUCH_THRESHOLD = 0.05;
 				if (!coords.length && this.forceDown) {
 					console.log('^', coords);
 					robot.mouseToggle('up');
 					this.forceDown = false;
 				}
-				else if (coords.length && coords[0] > 0.1 && !this.forceDown) {
+				else if (coords.length && coords[0] > FORCE_TOUCH_THRESHOLD && !this.forceDown) {
 					console.log('v', coords);
 					robot.mouseToggle('down');
 					this.forceDown = true;
@@ -197,9 +208,10 @@ class TouchPadSession extends Session {
 					// this.scrollYspeed = this.scrollYspeed * 0.9 + sy * 1.5;
 				// }
 
-				if (!this.moved && Date.now() - this.down > 250) {
-					robot.mouseToggle('down');
-				}
+// 				if (NO_FORCE_CLICK)
+// 				if (!this.moved && Date.now() - this.down > 250) {
+// 					robot.mouseToggle('down');
+// 				}
 				this.moved = true;
 
 				break;
