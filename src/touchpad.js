@@ -6,6 +6,8 @@ var Session = require('./session');
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
 
+const SCROLL_DAMPENING = 0.90; // ran 1000 / 24 ~= 40hz
+
 // Remote TouchPad / Remote Control Session
 // Features
 // - remote mouse control
@@ -60,7 +62,7 @@ class TouchPadSession extends Session {
 		var dist = Math.sqrt(dx * dx + dy * dy);
 		var currentSpeed = Math.min(Math.max(dist / dt * 1000 * scale, MIN_SPEED), MAX_SPEED);
 
-		var speed = this.speed * 0.8 + currentSpeed * 0.2;
+		var speed = this.speed * 0.6 + currentSpeed * 0.4;
 
 		var vx = dx * speed;
 		var vy = dy * speed;
@@ -112,7 +114,7 @@ class TouchPadSession extends Session {
 		const ay1 = Math.abs(dy1);
 		const ay2 = Math.abs(dy2); 
 		if (ay1 > 0 || ay2 > 0) {
-			// let ry = ay1 > ay2 ? dy1 : dy2;
+			// average distance moved by both fingers
 
 			let ry =  dy1 * 0.5 + dy2 * 0.5;
 
@@ -189,7 +191,10 @@ class TouchPadSession extends Session {
 
 				// if (sy) {
 					// this.scrollYspeed += sy * 2;
-					this.scrollYspeed = this.scrollYspeed * 0.9 + sy * 1.5;
+					// this.scrollYspeed = this.scrollYspeed * 0.9 + sy * 2;
+
+					this.scrollYspeed = this.scrollYspeed * 0.85 + 0.15 * sy / 0.02 * 0.5;
+					// this.scrollYspeed = this.scrollYspeed * 0.9 + sy * 1.5;
 				// }
 
 				if (!this.moved && Date.now() - this.down > 250) {
@@ -267,9 +272,8 @@ class TouchPadSession extends Session {
 
 	onInterval() {
 		if (this._isScrolling()) {
-			console.log('scrolling', this.scrollYspeed);
 			robot.scrollMouse(0, -this.scrollYspeed | 0);
-			this.scrollYspeed *= 0.85;
+			this.scrollYspeed *= SCROLL_DAMPENING;
 		} else {
 			this.scrollYspeed = 0;
 		}

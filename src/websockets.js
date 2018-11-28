@@ -50,7 +50,11 @@ wss.on('connection', function(ws) {
 	// Standard bindings?
 	ws.on('message', d => {
 		if (session.handleMessage) {
-			session.handleMessage(d);
+			try {
+				session.handleMessage(d);
+			} catch (e) {
+				console.error(e);
+			}
 		} else {
 			console.log('session.handleMessage() not implemented');
 		}
