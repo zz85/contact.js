@@ -122,7 +122,7 @@ console.log('Base directory at ' + currentDir);
 
 
 // // advertise an HTTP server on port
-bonjour.publish({ name: 'Contact Server', type: 'http', port: http_port })
+// bonjour.publish({ name: 'Contact Server', type: 'http', port: http_port })
 
 process.on('SIGINT', function() {
     console.log("Caught interrupt signal");

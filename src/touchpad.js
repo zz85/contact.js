@@ -94,10 +94,6 @@ class TouchPadSession extends Session {
 		this.mouse.x = tx;
 		this.mouse.y = ty;
 
-		// ideally we shouldn't clamp - and let the os handle it.
-		this.mouse.x = Math.min(Math.max(0, tx), this.screenSize.width);
-		this.mouse.y = Math.min(Math.max(0, ty), this.screenSize.height);
-
 		if (this.forceDown) {
 			robot.dragMouse(this.mouse.x, this.mouse.y);
 		}

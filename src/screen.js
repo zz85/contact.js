@@ -16,38 +16,28 @@ function getScreens() {
     for (let i = 0; i < screens_count; i++) {
         const aScreen = screens('objectAtIndex', i)
 
-        console.log('Screen ' + i)
         const backingScaleFactor = aScreen('backingScaleFactor')
-
         const frame = aScreen('frame')
-        const description = aScreen('deviceDescription');
-        
-        // const visibleFrame = aScreen('visibleFrame')
-        // console.log(aScreen.methods())
-        // console.log(description('class'), description.methods())
-        const deviceSize = description('objectForKey', $('NSDeviceSize'))
-        console.log('deviceSize', deviceSize('class'), deviceSize.methods(), deviceSize('_value'))
+        const description = aScreen('deviceDescription')
         const screenNumber = description('objectForKey', $('NSScreenNumber'))
-
-        let e = description('keyEnumerator')
-        while (key = e('nextObject')) {
-            console.log(key, description('objectForKey', key))
+        const info = {
+            x: frame.origin.x,
+            y: frame.origin.y,
+            w: frame.size.width,
+            h: frame.size.height,
+            scale: backingScaleFactor,
+            i: i,
+            id: screenNumber
         }
 
-        
-
-        // NSDeviceResolution, NSDeviceSize, NSScreenNumber
-        console.log('scaling', backingScaleFactor)
-        displays.push({
-            w: deviceSize.width,
-            h: deviceSize.height,
-            scale: backingScaleFactor,
-            id: screenNumber
-        })
+        console.log('Screen ' + i, info)
+        displays.push(info)
     }
 
     return displays;
 }
+
+
 
 /*
 // https://github.com/Hammerspoon/hammerspoon/blob/master/extensions/screen/internal.m
@@ -111,11 +101,25 @@ function scroll(x, y) {
 setInterval(() => {
     // moveMouse(Math.random() * 1000, Math.random() * 1000)
     // mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
-    console.log(getMouse())
+
     // scroll(0, 100)
+
+    // pick a screen and randomly move
+    /*
+    s = ss[Math.random() * ss.length | 0];
+    console.log('screen', s.i)
+    s = ss[1]
+    tx = s.x + Math.random() * s.w;
+    ty = Math.random() *s.h - s.y
+    console.log('moving to', tx, ty)
+    mouseMoveSilently(tx, ty)
+    */
+    // console.log(getMouse())
 }, 500);
 
-console.log(getScreens())
+
+var ss = getScreens();
+console.log(ss)
 
 module.exports = {
     moveMouse: mouseMoveSilently,
