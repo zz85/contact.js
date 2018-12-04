@@ -19,7 +19,21 @@
 <body>
 	<script src="src/wire.js"></script>
 	<script src="src/connection.js"></script>
-	
+	<script src="src/transmitter.js"></script>
+	<script>
+	function sendKeyTap(key) {
+	connection.sendType('kt', {
+		key: key
+	})
+}
+
+function sendString(input) {
+	if (input) connection.sendType('rt', {
+		text: input
+	});
+}
+</script>
+
 	
 	<script type="text/javascript">
 
@@ -63,6 +77,7 @@
 	var down = new Vec2(0, 1);
 	var left = new Vec2(-1, 0);
 	var ANGLE_THRESHOLD = 0.8;
+	var MOVE_RADIUS = 80;
 
 	var canvas;
 	var ctx;
@@ -73,8 +88,6 @@
 	var touches = [];
 	var connection;
 	var touchStart;
-
-	var MOVE_RADIUS = 80;
 
 	function animate() {
 		requestAnimationFrame(animate);
@@ -149,30 +162,42 @@
 
 		var target = canvas; // window
 
+		function checkDir() {
+			var end = touches[0];
+			var start = touchStart[0]
+			var vec = new Vec2(end.clientX - start.clientX, end.clientY - start.clientY)
+			console.log('angle', vec.angle())
+
+			var toMove = vec.distSq() >= MOVE_RADIUS * MOVE_RADIUS;
+			var upDiff = vec.cosSim(up);
+			var isUp = upDiff > ANGLE_THRESHOLD;
+			var isRight = vec.cosSim(right) > ANGLE_THRESHOLD;
+			var isDown = vec.cosSim(down) > ANGLE_THRESHOLD;
+			var isLeft = vec.cosSim(left) > ANGLE_THRESHOLD;
+
+			// console.log('up', isUp)
+			var dir = !toMove ? '' : isUp ? 'up' : isDown ? 'down' : isLeft ? 'left' : isRight ? 'right': '';
+			console.log(dir)
+			dirinfo.innerHTML = dir;
+
+			if (dir) {
+				sendKeyTap(dir)
+			}
+		}
+
 		target.addEventListener('touchend', function(event) {
 			console.log('end', touches);
 			if (event.touches.length === 0 && touches[0]) {
-				var end = touches[0];
-				var start = touchStart[0]
-				var vec = new Vec2(end.clientX - start.clientX, end.clientY - start.clientY)
-				console.log('angle', vec.angle())
-
-				var upDiff = vec.cosSim(up);
-				var isUp = upDiff > ANGLE_THRESHOLD;
-				var isRight = vec.cosSim(right) > ANGLE_THRESHOLD;
-				var isDown = vec.cosSim(down) > ANGLE_THRESHOLD;
-				var isLeft = vec.cosSim(left) > ANGLE_THRESHOLD;
-
-				// console.log('up', isUp)
-				console.log(isUp ? 'up' : isDown ? 'down' : isLeft ? 'left' : isRight ? 'right': '')
-
+				checkDir()
 			}
 			touches = event.touches;
 			touchStart = null
+			clearInterval(dirInterval)
 		}, false);
 
 		target.addEventListener('touchmove', function(event) {
 			touches = event.touches;
+			// checkDir()
 		}, false);
 
 		target.addEventListener('touchstart', function(event) {
@@ -180,6 +205,9 @@
 			touches = event.touches;
 			touchStart = touches
 			console.log('start', touchStart)
+			dirInterval = setInterval(() => {
+				checkDir()
+			}, 200)
 		}, false);
 
 		target.addEventListener('resize', function(event) {
@@ -193,9 +221,17 @@
 	}
 
 	start()
+
+	var target = 'ws://' + location.hostname + ':8081/touchpad';
+		var connection = new Connection(target, handler);
+		connection.open();
+
+
+
 	</script>
 
 <button>Mouse Joystick</button>
 <button>Directions</button>
+<div id="dirinfo"></div>
 </body>
 </html>
