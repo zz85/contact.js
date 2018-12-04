@@ -17,22 +17,29 @@
 	</style>
 </head>
 <body>
+
+	<div style="position: absolute; z-index: 200">
+			<button onclick="javascript:mouseMode = true">"Red Dot" Mouse Joystick</button>
+			<button onclick="javascript:mouseMode = false">"Remote" Directions</button>
+			<div id="dirinfo"></div>
+	</div>
 	<script src="src/wire.js"></script>
 	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
 	<script>
+		var mouseMode = true;
 	function sendKeyTap(key) {
-	connection.sendType('kt', {
-		key: key
-	})
-}
+		connection.sendType('kt', {
+			key: key
+		})
+	}
 
-function sendString(input) {
-	if (input) connection.sendType('rt', {
-		text: input
-	});
-}
-</script>
+	function sendString(input) {
+		if (input) connection.sendType('rt', {
+			text: input
+		});
+	}
+	</script>
 
 	
 	<script type="text/javascript">
@@ -169,7 +176,7 @@ function sendString(input) {
 			console.log('angle', vec.angle())
 
 			var moveDist = vec.dist();
-			var toMove = moveDist >=  MOVE_RADIUS;
+			var toMove = moveDist >=  MOVE_RADIUS || true;
 			var upDiff = vec.cosSim(up);
 			var isUp = upDiff > ANGLE_THRESHOLD;
 			var isRight = vec.cosSim(right) > ANGLE_THRESHOLD;
@@ -181,10 +188,14 @@ function sendString(input) {
 			console.log(dir)
 			dirinfo.innerHTML = dir;
 
-			if (dir) {
-				sendKeyTap(dir)
+			if (mouseMode) connection.sendType('mm', [ vec.x * 0.4, vec.y * 0.4, clickInterval])
 
-				clickInterval /= 1.5
+			if (dir) {
+				if (!mouseMode) sendKeyTap(dir)
+				// var DIST = 8;
+				// connection.sendType('mm', [ isLeft ? -DIST : isRight ? DIST : 0, isUp ? -DIST : isDown ? DIST : 0, clickInterval])
+
+				clickInterval /= 1.2
 				clickInterval = Math.max(clickInterval, 40 / (moveDist / MOVE_RADIUS))
 			}
 		}
@@ -239,8 +250,6 @@ function sendString(input) {
 
 	</script>
 
-<button>Mouse Joystick</button>
-<button>Directions</button>
-<div id="dirinfo"></div>
+
 </body>
 </html>
