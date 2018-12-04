@@ -9,20 +9,135 @@
 			position: fixed;
 		}
 		body { margin: 0px; overflow: hidden; }
+		button { 
+			height: 40px;
+			background: #333;
+			color: #ddd;
+		}
 	</style>
 </head>
 <body>
 	<script src="src/wire.js"></script>
 	<script src="src/connection.js"></script>
-	<script src="src/transmitter.js"></script>
-	<script src="src/transmitter_example.js"></script>
+	
+	
 	<script type="text/javascript">
-		activateDeviceOrientation();
-		activateDeviceMotion();
 
-		var target = 'ws://' + location.hostname + ':8081/touchpad';
-		var connection = new Connection(target, handler);
-		connection.open();
+	var canvas;
+	var ctx;
+	var w = 0;
+	var h = 0;
+
+	var timer;
+	var touches = [];
+	var connection;
+	var touchStart;
+
+	var MOVE_RADIUS = 80;
+
+	function animate() {
+		requestAnimationFrame(animate);
+		update();
+	}
+
+	function update() {
+		ctx.save();
+		var dpr = window.devicePixelRatio;
+		ctx.scale(dpr, dpr);
+		ctx.clearRect(0, 0, w, h);
+
+		ctx.fillStyle = 'red';
+		ctx.fillText(connection && connection.status, 10, 20);
+
+		if (touchStart && touchStart[0]) {
+			// touch point
+			ctx.beginPath();
+			ctx.arc(touchStart[0].clientX, touchStart[0].clientY, 20, 0, 2 * Math.PI, true);
+
+			ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+			ctx.fill();
+
+			// move radius
+			ctx.beginPath();
+			ctx.strokeStyle = 'pink'
+			ctx.lineWidth = 4;
+			ctx.arc(touchStart[0].clientX, touchStart[0].clientY, MOVE_RADIUS, 0, 2 * Math.PI, true);
+			ctx.stroke()
+		}
+
+		var i, len, px, py, touch;
+		for (i=0, len = touches.length; i<len; i++) {
+			touch = touches[i];
+			px = touch.clientX;
+			py = touch.clientY;
+
+			ctx.beginPath();
+			ctx.arc(px, py, 20, 0, 2 * Math.PI, true);
+
+			ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+			ctx.fill();
+
+			ctx.lineWidth = 2;
+			ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+			ctx.stroke();
+
+			ctx.moveTo(touchStart[0].clientX, touchStart[0].clientY);
+			ctx.lineTo(px, py);
+			ctx.stroke()
+		}
+
+		ctx.restore();
+	}
+
+
+	function start() {
+		w = window.innerWidth;
+		h = window.innerHeight;
+		canvas = document.createElement('canvas');
+
+		var dpr = window.devicePixelRatio;
+		canvas.width = w * dpr;
+		canvas.height = h * dpr;
+		canvas.style = 'position: absolute; z-index: 10'
+		canvas.style.width = w + 'px';
+		canvas.style.height = h + 'px';
+
+		ctx = canvas.getContext('2d');
+
+		document.body.appendChild(canvas);
+
+		var target = canvas; // window
+
+		target.addEventListener('touchend', function(event) {
+			touches = event.touches;
+			touchStart = null
+		}, false);
+
+		target.addEventListener('touchmove', function(event) {
+			touches = event.touches;
+		}, false);
+
+		target.addEventListener('touchstart', function(event) {
+			event.preventDefault()
+			touches = event.touches;
+			touchStart = touches
+			console.log('start', touchStart)
+		}, false);
+
+		target.addEventListener('resize', function(event) {
+			w = window.innerWidth;
+			h = window.innerHeight;
+			canvas.width = w;
+			canvas.height = h;
+		}, false);
+
+		animate();
+	}
+
+	start()
 	</script>
+
+<button>Mouse Joystick</button>
+<button>Directions</button>
 </body>
 </html>

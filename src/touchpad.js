@@ -7,6 +7,7 @@ var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
 
 const SCROLL_DAMPENING = 0.90; // ran 1000 / 24 ~= 40hz
+const FORCE_TOUCH_THRESHOLD = 0.1; // touch force above this, considered click
 
 // Remote TouchPad / Remote Control Session
 // Features
@@ -26,17 +27,15 @@ var RobotMover = {
 		};
 	},
 	moveMouse: (x, y) => robot.moveMouse(x, y),
+	dragMouse: (x, y) => robot.dragMouse(x, y),
+	// mouseToggle('up')
+	// mouseToggle('down')
 }
 
 var mover = require('./screen');
-
 /**
- * TODO isolate implementation details of system events / commands
+ * TODO: dragMouse(), mouseToggle()
  */
-
-function doMouseDown() {
-
-}
 
 class TouchPadSession extends Session {
 	constructor(ws, sessions, roles) {
@@ -47,7 +46,8 @@ class TouchPadSession extends Session {
 		// TODO fix accelearation
 		this.scrollYspeed = 0;
 
-		this.intervals = [ setInterval(() => this.onInterval(), 25) ];
+		var interval = setInterval(() => this.onInterval(), 25);
+		this.intervals.push(interval);
 	}
 
 	sendScreen() {
@@ -141,8 +141,6 @@ class TouchPadSession extends Session {
 
 		return 0;
 
-
-
 		// distance travelled of finger 1 and 2
 		const d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
 		const d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
@@ -158,10 +156,6 @@ class TouchPadSession extends Session {
 
 		// scroll left-right
 		// scroll up-down
-
-		
-		
-		// robot.scrollMouse(rx, ry);
 
 		if (vy < 5) {
 			return dy1;
@@ -182,7 +176,6 @@ class TouchPadSession extends Session {
 				// Also, touch move should use the latest fingers
 				// console.log('forces', coords);
 
-				var FORCE_TOUCH_THRESHOLD = 0.05;
 				if (!coords.length && this.forceDown) {
 					console.log('^', coords);
 					robot.mouseToggle('up');
