@@ -77,7 +77,7 @@ function sendString(input) {
 	var down = new Vec2(0, 1);
 	var left = new Vec2(-1, 0);
 	var ANGLE_THRESHOLD = 0.8;
-	var MOVE_RADIUS = 80;
+	var MOVE_RADIUS = 100;
 
 	var canvas;
 	var ctx;
@@ -168,7 +168,8 @@ function sendString(input) {
 			var vec = new Vec2(end.clientX - start.clientX, end.clientY - start.clientY)
 			console.log('angle', vec.angle())
 
-			var toMove = vec.distSq() >= MOVE_RADIUS * MOVE_RADIUS;
+			var moveDist = vec.dist();
+			var toMove = moveDist >=  MOVE_RADIUS;
 			var upDiff = vec.cosSim(up);
 			var isUp = upDiff > ANGLE_THRESHOLD;
 			var isRight = vec.cosSim(right) > ANGLE_THRESHOLD;
@@ -182,7 +183,16 @@ function sendString(input) {
 
 			if (dir) {
 				sendKeyTap(dir)
+
+				clickInterval /= 1.5
+				clickInterval = Math.max(clickInterval, 40 / (moveDist / MOVE_RADIUS))
 			}
+		}
+
+		function onClick() {
+			checkDir()
+				
+			setTimeout(onClick, clickInterval);
 		}
 
 		target.addEventListener('touchend', function(event) {
@@ -192,7 +202,7 @@ function sendString(input) {
 			}
 			touches = event.touches;
 			touchStart = null
-			clearInterval(dirInterval)
+			clearTimeout(dirInterval)
 		}, false);
 
 		target.addEventListener('touchmove', function(event) {
@@ -205,9 +215,8 @@ function sendString(input) {
 			touches = event.touches;
 			touchStart = touches
 			console.log('start', touchStart)
-			dirInterval = setInterval(() => {
-				checkDir()
-			}, 200)
+			clickInterval = 200
+			dirInterval = setTimeout(onClick, clickInterval)
 		}, false);
 
 		target.addEventListener('resize', function(event) {
