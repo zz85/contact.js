@@ -134,7 +134,7 @@ class TouchPadSession extends Session {
 		if (ay1 > 0 || ay2 > 0) {
 			// average distance moved by both fingers
 
-			let ry =  dy1 * 0.5 + dy2 * 0.5;
+			let ry = dy1 * 0.5 + dy2 * 0.5;
 
 			return ry;
 		}

@@ -27,7 +27,8 @@
 	<script src="src/connection.js"></script>
 	<script src="src/transmitter.js"></script>
 	<script>
-		var mouseMode = true;
+	var mouseMode = true;
+
 	function sendKeyTap(key) {
 		connection.sendType('kt', {
 			key: key
@@ -40,7 +41,6 @@
 		});
 	}
 	</script>
-
 	
 	<script type="text/javascript">
 
@@ -170,25 +170,59 @@
 		var target = canvas; // window
 
 		function checkDir() {
+			if (!touchStart) return
 			var end = touches[0];
 			var start = touchStart[0]
 			var vec = new Vec2(end.clientX - start.clientX, end.clientY - start.clientY)
 			console.log('angle', vec.angle())
 
+			// console.log('up', isUp)
+
 			var moveDist = vec.dist();
-			var toMove = moveDist >=  MOVE_RADIUS || true;
+
+			if (mouseMode) {
+				dirinfo.innerHTML = 'dot mouse mode';
+				
+				// .002
+				// after first interval, repeat at every 25ms
+				// connection.sendType('mm', [ vec.x * 0.25, vec.y * 0.25, clickInterval])
+				// clickInterval = 25;
+
+				// .003
+				// var n = vec.normal()
+				// connection.sendType('mm', [ n.x * 10, n.y * 10, clickInterval])
+				// clickInterval = 25
+
+				// .004
+				// var n = vec.normal()
+				// connection.sendType('mm', [ n.x * 5, n.y * 5, clickInterval])
+				// clickInterval = 5 / (moveDist / MOVE_RADIUS)
+
+				var n = vec.normal()
+				var mul = 4;
+
+				if (moveDist < MOVE_RADIUS * 0.25) mul = 1
+				if (moveDist > MOVE_RADIUS * 2) mul *= 2
+
+				connection.sendType('mm', [ n.x * 1 * mul, n.y * 1 * mul, clickInterval])
+				clickInterval = 10
+
+				// http://ted.selker.com/documents/resumefiles/other%20publications/trackpoint%20II.PDF
+
+				return
+			}
+
+			
+			var toMove = moveDist >= MOVE_RADIUS || true;
 			var upDiff = vec.cosSim(up);
 			var isUp = upDiff > ANGLE_THRESHOLD;
 			var isRight = vec.cosSim(right) > ANGLE_THRESHOLD;
 			var isDown = vec.cosSim(down) > ANGLE_THRESHOLD;
 			var isLeft = vec.cosSim(left) > ANGLE_THRESHOLD;
 
-			// console.log('up', isUp)
 			var dir = !toMove ? '' : isUp ? 'up' : isDown ? 'down' : isLeft ? 'left' : isRight ? 'right': '';
 			console.log(dir)
 			dirinfo.innerHTML = dir;
-
-			if (mouseMode) connection.sendType('mm', [ vec.x * 0.4, vec.y * 0.4, clickInterval])
 
 			if (dir) {
 				if (!mouseMode) sendKeyTap(dir)
@@ -246,8 +280,13 @@
 		var connection = new Connection(target, handler);
 		connection.open();
 
-
-
+	/*
+	 * mode 1. ibm red dot mouse / pointing stick / trackpoint / https://xkcd.com/243/
+		.001: repeat rate exp increase, use amp of vector (with min to activvate, and max).
+		.002: after first slow repeat, 2nd is rapid
+		
+	 * mode 2. keyboard directions only
+	 */
 	</script>
 
 

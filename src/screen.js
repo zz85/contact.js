@@ -37,8 +37,6 @@ function getScreens() {
     return displays;
 }
 
-
-
 /*
 // https://github.com/Hammerspoon/hammerspoon/blob/master/extensions/screen/internal.m
     NSScreen* screen = get_screen_arg(L, 1);
@@ -98,28 +96,30 @@ function scroll(x, y) {
     $.CFRelease(event);
 }
 
+// for testing only
+/*
 setInterval(() => {
     // moveMouse(Math.random() * 1000, Math.random() * 1000)
     // mouseMoveSilently(Math.random() * 1000, Math.random() * 1000)
 
     // scroll(0, 100)
 
-    // pick a screen and randomly move
-    /*
-    s = ss[Math.random() * ss.length | 0];
-    console.log('screen', s.i)
-    s = ss[1]
-    tx = s.x + Math.random() * s.w;
-    ty = Math.random() *s.h - s.y
-    console.log('moving to', tx, ty)
-    mouseMoveSilently(tx, ty)
-    */
+    // // pick a screen and randomly move
+    // s = ss[Math.random() * ss.length | 0];
+    // console.log('screen', s.i)
+    // s = ss[1]
+    // tx = s.x + Math.random() * s.w;
+    // ty = Math.random() *s.h - s.y
+    // console.log('moving to', tx, ty)
+    // mouseMoveSilently(tx, ty)
+  
     // console.log(getMouse())
 }, 500);
 
 
 var ss = getScreens();
 console.log(ss)
+*/
 
 module.exports = {
     moveMouse: mouseMoveSilently,
