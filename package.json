@@ -13,6 +13,7 @@
   "author": "Joshua Koo <zz85nus@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "adbkit": "^2.11.0",
     "bonjour": "^3.5.0",
     "nodobjc": "^2.1.0",
     "robotjs": "https://github.com/octalmage/robotjs",
