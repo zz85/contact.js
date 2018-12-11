@@ -3,6 +3,8 @@ var wire = require('./wire');
 var screenshare = require('./screenshare');
 var Session = require('./session');
 
+var FireTv = require('./firetv');
+
 var MIN_SPEED = 0.15;
 var MAX_SPEED = 5;
 
@@ -272,6 +274,10 @@ class TouchPadSession extends Session {
 				} catch (e) {
 					console.log(coords.key, 'is not supported', e);
 				}
+				break;
+			case 'ftv':
+				// console.log(coords, data);
+				FireTv(coords[0])
 				break;
 			default:
 				// We just dump stuff for logging
