@@ -54,6 +54,8 @@ module.exports = (key) => {
     send(code);
 }
 
+var deviceId;
+
 function send(NAME) {
     var CODE = FIRETV_KEY_EVENTS[NAME]
     var cmd = `input keyevent ${CODE}`;
@@ -74,8 +76,6 @@ function connect(host) {
         .connect(host)
         .then(ok, err)
 }
-
-var deviceId;
 
 connect('192.168.0.14')
     .then(v => client.listDevices())
