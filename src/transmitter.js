@@ -121,7 +121,8 @@ function setLast(touches) {
 			var dx = touch.pageX - last.pageX;
 			var dy = touch.pageY - last.pageY;
 
-			send('mm\n[' + dx + ',' + dy + ',' + dt + ']')
+			// send('mm\n[' + dx + ',' + dy + ',' + dt + ']')
+			sendPack('mm', [dx, dy, dt]);
 		}
 
 		last.pageX = touch.pageX;
