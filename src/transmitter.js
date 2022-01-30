@@ -101,7 +101,8 @@ function convert(touches) {
 function sendDimension() {
 	width = window.innerWidth;
 	height = window.innerHeight;
-	send('r\n['+width+','+height+']');
+	// send('r\n['+width+','+height+']');
+	sendPack('r',  [width, height]);
 }
 
 window.onerror = function(message, file, line) {

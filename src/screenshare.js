@@ -21,7 +21,9 @@ class ScreenShare extends EventEmitter {
             -f avfoundation
                 -i 0:0`;
 
-        var DISPLAY_NO = 1; // change this
+        var DISPLAY_NO = 2; // change this
+        // ffmpeg -hide_banner -f avfoundation -list_devices true -i ""
+
         var screen_input = `-f avfoundation -i ${DISPLAY_NO}`;
 
         var input = mode === 'webcam' ? webcam_input : screen_input;
@@ -97,9 +99,63 @@ screenshare.on('data', d => {
 // screenshare.start();
 
 // Screenshare server
-var WebSocket = require('uws');
+var WebSocket = require('ws');
+
 var clients = new Set();
 var wss = new WebSocket.Server({ port: 8082, perMessageDeflate: false });
+
+/*
+var uws = require('uWebSockets.js');
+uws = false;
+if (uws)  new uws.App().ws('/*', {
+    compression: false, // uWS.SHARED_COMPRESSOR,
+    maxPayloadLength: 16 * 1024 * 1024,
+    idleTimeout: 10,
+    open: (ws) => {
+      console.log('A WebSocket connected!');
+      if (!screenshare.running()) {
+            screenshare.start();
+        }
+
+        ws.on('close', () => {
+            console.log('Disconnected WebSocket');
+            clients.delete(ws);
+
+            setTimeout(stopFFmpeg, 5000);
+        });
+
+        console.log(
+            'New WebSocket Connection: ',
+            ws.upgradeReq.socket.remoteAddress,
+            ws.upgradeReq.headers['user-agent'],
+            '('+ wss.connectionCount + ' total)'
+        );
+
+        clients.add(ws);
+        
+    },
+    message: (ws, message, isBinary) => {
+      //Ok is false if backpressure was built up, wait for drain
+      let ok = ws.send(message, isBinary);
+    },
+    drain: (ws) => {
+      console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
+    },
+    close: (ws, code, message) => {
+      console.log('WebSocket closed');
+    }
+  })
+.get('/*', (res, req) => {
+    res.end('Hello World!');
+  }).listen(8082, (token) => {
+    if (token) {
+        console.log('Listening to port ' + 8082);
+    } else {
+        console.log('Failed to listen to port ' + 8082);
+    }
+});
+*/
+
 var stopping = null;
 
 function stopFFmpeg() {
@@ -108,7 +164,7 @@ function stopFFmpeg() {
     }
 }
 
-wss.on('connection', function(ws) {
+wss.on('connection', function(ws, req) {
     if (!screenshare.running()) {
         screenshare.start();
     }
@@ -122,8 +178,8 @@ wss.on('connection', function(ws) {
 
     console.log(
 		'New WebSocket Connection: ',
-		ws.upgradeReq.socket.remoteAddress,
-		ws.upgradeReq.headers['user-agent'],
+		req.socket.remoteAddress,
+		req.headers['user-agent'],
 		'('+ wss.connectionCount + ' total)'
 	);
 

@@ -62,7 +62,8 @@ class Session {
 			console.log('session.processMessage() not implemented!');
 		}
 
-		if (data instanceof Buffer || data instanceof ArrayBuffer) {
+		var isBuffer = data instanceof Buffer;
+		if ((isBuffer || data instanceof ArrayBuffer) && data.length % 8 == 0) {
 			if (data instanceof Buffer) {
 				var ab = abToType(data);
 			} else {
@@ -94,8 +95,9 @@ class Session {
 			return;
 		}
 		else if (typeof data !== 'string') {
-			console.log('Oops unknown data type', typeof data, data);
-			return;
+			console.log('Oops unknown data type', typeof data, data, data.toString());
+			if (!isBuffer) return;
+			data = data.toString();
 		}
 
 		var msg = data.split('\n');

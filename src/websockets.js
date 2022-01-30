@@ -1,7 +1,7 @@
 // Start contact.js Websocket Server
 var websockets_port = 8081;
 
-var WebSocketServer = require('uws').Server;
+var WebSocketServer = require('ws').Server;
 var pings = {}; // TODO remove
 
 var TouchPadSession = require('./touchpad');
@@ -14,9 +14,14 @@ function displayClients() {
 	console.log('Active Sessions', sessions.size);
 }
 
-wss.on('connection', function(ws) {
+
+wss.on('connection', onConnection);
+
+function onConnection(ws, req) {
 	var info = ws.upgradeReq;
+	if (req) info  = req;
 	console.log('Received websocket connection to', info.url);
+	// console.log(req);
 
 	var session;
 
@@ -72,7 +77,7 @@ wss.on('connection', function(ws) {
 
 	// ws.send('rr\n[]');
 
-});
+}
 
 // End of contact.js Websocket Server
 
