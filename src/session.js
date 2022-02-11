@@ -95,7 +95,7 @@ class Session {
 			return;
 		}
 		else if (typeof data !== 'string') {
-			console.log('Oops unknown data type', typeof data, data, data.toString());
+			console.log('Oops unknown data type', typeof data, data);
 			if (!isBuffer) return;
 			data = data.toString();
 		}

@@ -25,9 +25,14 @@ function onConnection(ws, req) {
 
 	var session;
 
-	if (info.url === '/touchpad') {
+	var url = info.url;
+	console.log('url', url)
+	url = '/' + url.split('/touch/')[1]
+	console.log('url', url)
+
+	if (url === '/touchpad') {
 		session = new TouchPadSession(ws, sessions);
-	} else if (info.url == '/transmitter') {
+	} else if (url == '/transmitter') {
 		session = new Session(ws, sessions, ['transmitter']);
 		console.log('Transmitter connected.');
 
@@ -40,7 +45,7 @@ function onConnection(ws, req) {
 		// 	receiver.send('t');
 		// 	receiver.wh && ws.send('rr\n' + receiver.wh);
 		// }
-	} else if (info.url == '/receiver') {
+	} else if (url == '/receiver') {
 		// receiver
 		session = new Session(ws, sessions, ['receiver']);
 		console.log('Receiver connected.');

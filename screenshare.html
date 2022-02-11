@@ -15,7 +15,8 @@
 	<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
 	<script type="text/javascript">
 		var canvas = document.getElementById('video-canvas');
-		var url = 'ws://'+document.location.hostname+':8082/';
+		// var url = 'ws://'+document.location.hostname+':8082/';
+        var url = 'wss://'+document.location.hostname+'/screenshare';
 		var player = new JSMpeg.Player(url, {canvas: canvas});
 	</script>
 
@@ -24,7 +25,7 @@
 	<script src="src/transmitter.js"></script>
 	<script src="src/transmitter_example.js"></script>
 	<script type="text/javascript">
-		var target = 'ws://' + location.hostname + ':8081/touchpad';
+		var target = 'wss://' + location.hostname + '/touch/touchpad';
 		var connection = new Connection(target, handler);
 		connection.open();
 

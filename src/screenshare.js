@@ -39,11 +39,16 @@ class ScreenShare extends EventEmitter {
 
         scale = scales[scale] || '';
 
-        var bitrate_quality = '-b:v 1000k';
+        // var bitrate_quality = '-b:v 1000k';
+        var bitrate_quality = '-b:v 500k';
         var q_quality = '-q 22';
 
+        // -threads 2
+        // -preset ultrafast
         // TODO options. cropping, quality / bitrate.
-        var args = `ffmpeg
+        var args = `ffmpeg 
+        -re
+            -threads 2
             ${input}
             ${scale}
             -f mpegts
@@ -166,7 +171,7 @@ function stopFFmpeg() {
 
 wss.on('connection', function(ws, req) {
     if (!screenshare.running()) {
-        screenshare.start();
+        screenshare.start('', 'half');
     }
 
 	ws.on('close', () => {
