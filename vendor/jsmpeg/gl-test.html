@@ -11,7 +11,7 @@
 	<body>
 
 		<div id="stats"></div>
-		<canvas id="video-canvas" width="400" height="400"></canvas>
+		<canvas id="video-canvas" style="display: none;"></canvas>
 		<script type="text/javascript" src="jsmpeg.min.js"></script>
 
 
@@ -40,12 +40,15 @@
 					stats.innerHTML = elapsedTime*1000;
 
 					if (!started) {
-						started = setTimeout(init, 2000)
+						// started = setTimeout(init, 2000)
+						player.pause();
+						started = true;
+						init();
 					}
 				},
 				// preserveDrawingBuffer: true,
 			});
-
+			window.player  =  player;
 
 			import * as THREE from 'three';
 
@@ -112,6 +115,7 @@
 					cube.rotation.x += 0.01;
 					cube.rotation.y += 0.01;
 
+					player.nextFrame();
 					textureCanvas.needsUpdate = true;
 
 					renderer.render( scene, camera );
