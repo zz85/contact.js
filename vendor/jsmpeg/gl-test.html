@@ -131,7 +131,7 @@
 
 				var mouseX = 0.5, mouseY = 0.5;
 				window.addEventListener('mousemove', (e) => {
-					mouseX = e.clientX / innerWidth;
+					mouseX = e.clientX / innerWidth ;
 					mouseY = e.clientY / innerHeight;
 				})
 
@@ -139,13 +139,15 @@
 				function animate() {
 					requestAnimationFrame( animate );
 
-					cube.rotation.x += 0.01;
-					cube.rotation.y += 0.01;
 
 					screenMesh.rotation.x = (mouseY - 0.5)  * 0.0;
 
-					camera.position.y  = -3.5 + 8 * mouseY;
-					camera.position.z  = 2 + 8 * mouseX;
+					// camera.position.y  = -3.5 + 8 * mouseY;
+					// camera.position.z  = 2 + 8 * mouseX;
+
+					camera.position.x += ((mouseX - 0.5) * 10 - camera.position.x ) * .05;
+					camera.position.y += ( -( mouseY - 0.5) * 10 - camera.position.y  ) * .05;
+
 					window.c = camera;
 					camera.lookAt(screenMesh.position.x, screenMesh.position.y , screenMesh.position.z)
 
