@@ -99,12 +99,14 @@
 				function curveFunction(u, v, target) {
 					const x = u * 1;
 					const y = v * 1;
-					const z = 0;
+
+					// could use spline curve here too
+					const z = Math.sin(-u * Math.PI);
 
 					target.set( x, y, z );
 				}
 
-				var screenGeometry = new ParametricGeometry( curveFunction, 10, 10 );
+				var screenGeometry = new ParametricGeometry( curveFunction, 20, 1 );
 
 				screenGeometry.center();
 
