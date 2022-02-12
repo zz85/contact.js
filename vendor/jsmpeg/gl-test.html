@@ -60,7 +60,7 @@
 			import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
 			import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
 
-			var cube, textureCanvas;
+			var cube, videoTexture;
 
 
 			function init() {
@@ -79,7 +79,7 @@
 
 				camera.position.z = 5;
 
-				var plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshLambertMaterial( { color: 0xe0e0e0 } ) );
+				var plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshPhongMaterial( { color: 0xe0e0e0 } ) );
 				plane.position.y = - 10;
 				plane.rotation.x = - Math.PI / 2;
 				scene.add( plane );
@@ -112,22 +112,29 @@
 
 				screenGeometry.center();
 
-				textureCanvas = new THREE.CanvasTexture( videoCanvas );
+				videoTexture = new THREE.CanvasTexture( videoCanvas );
 				const materialCanvas = new THREE.MeshBasicMaterial( {
 					// wireframe: true,
 					// color: 0xffffff,
 					// doubleSided
-					map: textureCanvas } );
+					map: videoTexture } );
 
-				const meshCanvas = new THREE.Mesh( screenGeometry, materialCanvas );
-				window.meshCanvas = meshCanvas;
-				meshCanvas.scale.x = videoCanvas.width / videoCanvas.height;
-				meshCanvas.scale.multiplyScalar(4);
-				meshCanvas.rotation.x =  -Math.PI / 6;
-				// meshCanvas.scale.set( 10, 10, 10 );
-				// meshCanvas.position.z = -10;
+				const screenMesh = new THREE.Mesh( screenGeometry, materialCanvas );
+				window.screenMesh = screenMesh;
+				screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
+				screenMesh.scale.multiplyScalar(4);
+				screenMesh.rotation.x =  -Math.PI / 6;
+				// screenMesh.scale.set( 10, 10, 10 );
+				// screenMesh.position.z = -10;
 
-				scene.add(meshCanvas)
+				scene.add(screenMesh)
+
+				var mouseX = 0.5, mouseY = 0.5;
+				window.addEventListener('mousemove', (e) => {
+					mouseX = e.clientX / innerWidth;
+					mouseY = e.clientY / innerHeight;
+				})
+
 
 				function animate() {
 					requestAnimationFrame( animate );
@@ -135,8 +142,16 @@
 					cube.rotation.x += 0.01;
 					cube.rotation.y += 0.01;
 
+					screenMesh.rotation.x = (mouseY - 0.5)  * 0.0;
+
+					camera.position.y  = 5 * mouseY;
+					camera.position.z  = 2 + 10 * mouseX;
+					window.c = camera;
+					camera.lookAt(screenMesh.position)
+
+
 					player.nextFrame();
-					textureCanvas.needsUpdate = true;
+					videoTexture.needsUpdate = true;
 
 					renderer.render( scene, camera );
 				};
