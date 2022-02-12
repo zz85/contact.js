@@ -57,6 +57,9 @@
 
 			import * as THREE from 'three';
 
+			import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
+			import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
+
 			var cube, textureCanvas;
 
 
@@ -89,19 +92,34 @@
 					scene.add(light);
 				}
 
-				const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
+				// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
+
+				// var screenGeometry = new ParametricGeometry( ParametricGeometries.plane( 1, 1 ), 10, 10 );
+
+				function curveFunction(u, v, target) {
+					const x = u * 1;
+					const y = v * 1;
+					const z = 0;
+
+					target.set( x, y, z );
+				}
+
+				var screenGeometry = new ParametricGeometry( curveFunction, 10, 10 );
+
+				screenGeometry.center();
 
 				textureCanvas = new THREE.CanvasTexture( videoCanvas );
 				const materialCanvas = new THREE.MeshBasicMaterial( {
 					// wireframe: true,
-					color: 0xffffff,
+					// color: 0xffffff,
+					// doubleSided
 					map: textureCanvas } );
 
 				const meshCanvas = new THREE.Mesh( screenGeometry, materialCanvas );
 				window.meshCanvas = meshCanvas;
 				meshCanvas.scale.x = videoCanvas.width / videoCanvas.height;
 				meshCanvas.scale.multiplyScalar(4);
-				meshCanvas.rotation.x =  Math.PI / 6;
+				meshCanvas.rotation.x =  -Math.PI / 6;
 				// meshCanvas.scale.set( 10, 10, 10 );
 				// meshCanvas.position.z = -10;
 
