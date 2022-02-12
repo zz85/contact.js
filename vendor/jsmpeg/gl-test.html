@@ -5,13 +5,16 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
+			body {
+				overflow: none;
+				margin: 0;
+			}
 		</style>
 	</head>
 
 	<body>
 
 		<div id="stats"></div>
-		<canvas id="video-canvas" style="display: none;"></canvas>
 		<script type="text/javascript" src="jsmpeg.min.js"></script>
 
 
@@ -29,17 +32,19 @@
 
 		<script type="module">
 
-			var imageCanvas = document.getElementById('video-canvas')
+			// var imageCanvas = document.getElementById('video-canvas')
 			var url = 'ws://'+document.location.hostname+':8082/';
 			var started;
+			var videoCanvas = document.createElement('canvas');
 			var player = new JSMpeg.Player(url, {
-				canvas: imageCanvas,
+				canvas: videoCanvas,
 				disableWebAssembly: false,
 				audio: false,
 				onVideoDecode: function(decoder, elapsedTime) {
 					stats.innerHTML = elapsedTime*1000;
 
 					if (!started) {
+						console.log(videoCanvas.width, videoCanvas.height);
 						// started = setTimeout(init, 2000)
 						player.pause();
 						started = true;
@@ -76,8 +81,6 @@
 				plane.rotation.x = - Math.PI / 2;
 				scene.add( plane );
 
-
-
 				{
 					const color = 0xFFFFFF;
 					const intensity = 1;
@@ -86,23 +89,18 @@
 					scene.add(light);
 				}
 
-				const screenGeometry = new THREE.PlaneGeometry( 2, 1 );
+				const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
 
-
-
-				textureCanvas = new THREE.CanvasTexture( imageCanvas );
-				const	materialCanvas = new THREE.MeshBasicMaterial( {
+				textureCanvas = new THREE.CanvasTexture( videoCanvas );
+				const materialCanvas = new THREE.MeshBasicMaterial( {
 					// wireframe: true,
 					color: 0xffffff,
 					map: textureCanvas } );
 
-				// var ctx = imageCanvas.getContext('2d');
-				// ctx.fillStyle = 'green'
-				// ctx.fillRect(20, 20, 20, 20)
-
-
 				const meshCanvas = new THREE.Mesh( screenGeometry, materialCanvas );
 				window.meshCanvas = meshCanvas;
+				meshCanvas.scale.x = videoCanvas.width / videoCanvas.height;
+				meshCanvas.scale.multiplyScalar(4);
 				meshCanvas.rotation.x =  Math.PI / 6;
 				// meshCanvas.scale.set( 10, 10, 10 );
 				// meshCanvas.position.z = -10;
