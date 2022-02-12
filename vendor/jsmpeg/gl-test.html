@@ -101,7 +101,9 @@
 					const y = v * 1;
 
 					// could use spline curve here too
-					const z = Math.sin(-u * Math.PI);
+					// const z = Math.sin(-u * Math.PI) * 0.2;
+					// normalize  between  -0.4, 0.4
+					const  z = ((u - 0.5)) ** 2 * 0.5;
 
 					target.set( x, y, z );
 				}
