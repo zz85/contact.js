@@ -1,28 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>three.js webgl + jsmpeg</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				overflow: none;
-				margin: 0;
-			}
-		</style>
-	</head>
 
-	<body>
+<head>
+	<title>three.js webgl + jsmpeg</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			overflow: none;
+			margin: 0;
+		}
+	</style>
+</head>
 
-		<div id="stats"></div>
-		<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
+<body>
+
+	<div id="stats" ></div>
+	<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
 
 
-		<!-- Import maps polyfill -->
-		<!-- Remove this when import maps will be widely supported -->
-		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+	<!-- Import maps polyfill -->
+	<!-- Remove this when import maps will be widely supported -->
+	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
 
-		<script type="importmap">
+	<script type="importmap">
 			{
 				"imports": {
 					"three": "/gits/three.js/build/three.module.js"
@@ -30,151 +31,156 @@
 			}
 		</script>
 
-		<script type="module">
+	<script type="module">
 
-			// var imageCanvas = document.getElementById('video-canvas')
-			var url = 'ws://'+document.location.hostname+':8082/';
-			var started;
-			var videoCanvas = document.createElement('canvas');
-			var player = new JSMpeg.Player(url, {
-				canvas: videoCanvas,
-				disableWebAssembly: false,
-				audio: false,
-				onVideoDecode: function(decoder, elapsedTime) {
-					stats.innerHTML = elapsedTime*1000;
+		// var imageCanvas = document.getElementById('video-canvas')
+		var url = 'ws://' + document.location.hostname + ':8082/';
+		var started;
+		var videoCanvas = document.createElement('canvas');
 
-					if (!started) {
-						console.log(videoCanvas.width, videoCanvas.height);
-						player.pause();
-						started = true;
-						init();
-					}
-				},
-				// preserveDrawingBuffer: true,
-			});
-			window.player  =  player;
+		var player = new JSMpeg.Player(url, {
+			canvas: videoCanvas,
+			disableWebAssembly: false,
+			audio: false,
+			onVideoDecode: function (decoder, elapsedTime) {
+				stats.innerHTML = `${(elapsedTime * 1000).toFixed(2)}ms / ${(1 / elapsedTime).toFixed(0)} fps`;
 
-			import * as THREE from 'three';
-
-			import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
-			import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
-
-			var cube, videoTexture, raycaster;
-			const pointer = new THREE.Vector2();
-
-
-			function init() {
-				const scene = new THREE.Scene();
-				const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-				var raycaster = new THREE.Raycaster();
-				const renderer = new THREE.WebGLRenderer();
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				document.body.appendChild( renderer.domElement );
-
-				// const geometry = new THREE.BoxGeometry();
-				// const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
-				// cube = new THREE.Mesh( geometry, material );
-				// scene.add( cube );
-
-				camera.position.z = 5;
-
-				var plane = new THREE.Mesh( new THREE.PlaneGeometry( 1000, 1000 ), new THREE.MeshPhongMaterial( { color: 0xe0e0e0 } ) );
-				plane.position.y = - 10;
-				plane.rotation.x = - Math.PI / 2;
-				scene.add( plane );
-
-				{
-					const color = 0xFFFFFF;
-					const intensity = 1;
-					const light = new THREE.DirectionalLight(color, intensity);
-					light.position.set(-1, 2, 4);
-					scene.add(light);
+				if (!started) {
+					console.log(decoder, videoCanvas.width, videoCanvas.height);
+					player.pause();
+					started = true;
+					init();
+					// screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
 				}
+			},
+			// preserveDrawingBuffer: true,
+		});
+		window.player = player;
 
-				// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
+		import * as THREE from 'three';
 
-				// var screenGeometry = new ParametricGeometry( ParametricGeometries.plane( 1, 1 ), 10, 10 );
+		import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
+		import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
 
-				function curveFunction(u, v, target) {
-					const x = u * 1;
-					const y = v * 1;
+		var cube, videoTexture, raycaster;
+		const pointer = new THREE.Vector2();
 
-					// could use spline curve here too
-					// const z = Math.sin(-u * Math.PI) * 0.2;
-					// normalize  between  -0.4, 0.4
-					const  z = ((u - 0.5)) ** 2 * 0.5;
+		function init() {
+			const scene = new THREE.Scene();
+			scene.background = new THREE.Color(0xdddddd)
+			scene.fog = new THREE.FogExp2( 0x555555, 0.0025 );
+			const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-					target.set( x, y, z );
-				}
+			var raycaster = new THREE.Raycaster();
+			const renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setPixelRatio(window.devicePixelRatio);
+			document.body.appendChild(renderer.domElement);
 
-				var screenGeometry = new ParametricGeometry( curveFunction, 20, 1 );
+			// const geometry = new THREE.BoxGeometry();
+			// const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
+			// cube = new THREE.Mesh( geometry, material );
+			// scene.add( cube );
 
-				screenGeometry.center();
+			camera.position.z = 5;
 
-				videoTexture = new THREE.CanvasTexture( videoCanvas );
-				const materialCanvas = new THREE.MeshBasicMaterial( {
-					// wireframe: true,
-					// color: 0xffffff,
-					// doubleSided
-					map: videoTexture } );
+			var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshPhongMaterial({ color: 0xe0e0e0 }));
+			plane.position.y = - 10;
+			plane.rotation.x = - Math.PI / 2;
+			scene.add(plane);
 
-				const screenMesh = new THREE.Mesh( screenGeometry, materialCanvas );
-				window.screenMesh = screenMesh;
-				screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
-				screenMesh.scale.multiplyScalar(4);
-				screenMesh.rotation.x =  -Math.PI / 6;
-
-				scene.add(screenMesh)
-
-				var mouseX = 0.5, mouseY = 0.5;
-				window.addEventListener('mousemove', (e) => {
-					mouseX = e.clientX / innerWidth ;
-					mouseY = e.clientY / innerHeight;
-
-					pointer.set(mouseX - 0.5, mouseY - 0.5)
-				})
-
-
-				function animate() {
-					requestAnimationFrame( animate );
-
-					screenMesh.rotation.x = (mouseY - 0.5)  * 0.0;
-
-					// camera.position.y  = -3.5 + 8 * mouseY;
-					// camera.position.z  = 2 + 8 * mouseX;
-
-					raycaster.setFromCamera( pointer, camera );
-
-					const intersects = raycaster.intersectObject( screenMesh, false );
-					const found = intersects[0];
-					if (found) {
-						console.log(found.uv)
-					}
-
-
-
-
-					camera.position.x += ((mouseX - 0.5) * 10 - camera.position.x ) * .05;
-					camera.position.y += ( -( mouseY - 0.5) * 10 - camera.position.y  ) * .05;
-
-					window.c = camera;
-					camera.lookAt(screenMesh.position.x, screenMesh.position.y , screenMesh.position.z)
-
-					player.nextFrame();
-					videoTexture.needsUpdate = true;
-
-					renderer.render( scene, camera );
-				};
-
-				animate();
+			{
+				const color = 0xFFFFFF;
+				const intensity = 1;
+				const light = new THREE.DirectionalLight(color, intensity);
+				light.position.set(-1, 2, 4);
+				scene.add(light);
 			}
 
+			// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
+
+			// var screenGeometry = new ParametricGeometry( ParametricGeometries.plane( 1, 1 ), 10, 10 );
+
+			function curveFunction(u, v, target) {
+				const x = u * 1;
+				const y = v * 1;
+
+				// could use spline curve here too
+				// const z = Math.sin(-u * Math.PI) * 0.2;
+				// normalize  between  -0.4, 0.4
+				const z = ((u - 0.5)) ** 2 * 0.5;
+
+				target.set(x, y, z);
+			}
+
+			var screenGeometry = new ParametricGeometry(curveFunction, 20, 1);
+
+			screenGeometry.center();
+
+			videoTexture = new THREE.CanvasTexture(videoCanvas);
+			const materialCanvas = new THREE.MeshBasicMaterial({
+				// wireframe: true,
+				// color: 0xffffff,
+				// doubleSided
+				map: videoTexture
+			});
+
+			const screenMesh = new THREE.Mesh(screenGeometry, materialCanvas);
+			window.screenMesh = screenMesh;
+			screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
+			screenMesh.scale.multiplyScalar(4);
+			screenMesh.rotation.x = -Math.PI / 6;
+
+			scene.add(screenMesh)
+
+			var mouseX = 0.5, mouseY = 0.5;
+			window.addEventListener('mousemove', (e) => {
+				mouseX = e.clientX / innerWidth;
+				mouseY = e.clientY / innerHeight;
+
+				pointer.set(mouseX - 0.5, mouseY - 0.5)
+			})
+
+
+			function animate() {
+				requestAnimationFrame(animate);
+
+				screenMesh.rotation.x = (mouseY - 0.5) * 0.0;
+
+				// camera.position.y  = -3.5 + 8 * mouseY;
+				// camera.position.z  = 2 + 8 * mouseX;
+
+				raycaster.setFromCamera(pointer, camera);
+
+				const intersects = raycaster.intersectObject(screenMesh, false);
+				const found = intersects[0];
+				if (found) {
+					var uv = found.uv
+					stats.innerHTML += `${uv.x}, ${uv.y}`
+				}
+
+				camera.position.x += ((mouseX - 0.5) * 10 - camera.position.x) * .05;
+				camera.position.y += (-(mouseY - 0.5) * 10 - camera.position.y) * .05;
+
+				window.c = camera;
+				camera.lookAt(screenMesh.position.x, screenMesh.position.y, screenMesh.position.z)
+
+				if (started) {
+					player.nextFrame();
+					videoTexture.needsUpdate = true;
+				}
+
+				renderer.render(scene, camera);
+			};
+
+			animate();
+		}
 
 
 
-		</script>
 
-	</body>
+	</script>
+
+</body>
+
 </html>
