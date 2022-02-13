@@ -242,6 +242,32 @@
 				pointer.set(mouseX - 0.5, mouseY - 0.5)
 			})
 
+
+			//
+
+			const geometry = new THREE.BufferGeometry();
+			geometry.setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, - 5)]);
+
+			const controller1 = renderer.xr.getController(0);
+			controller1.add(new THREE.Line(geometry));
+			scene.add(controller1);
+
+			const controller2 = renderer.xr.getController(1);
+			controller2.add(new THREE.Line(geometry));
+			scene.add(controller2);
+
+			//
+
+			const controllerModelFactory = new XRControllerModelFactory();
+
+			const controllerGrip1 = renderer.xr.getControllerGrip(0);
+			controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1));
+			scene.add(controllerGrip1);
+
+			const controllerGrip2 = renderer.xr.getControllerGrip(1);
+			controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2));
+			scene.add(controllerGrip2);
+
 			const group = new InteractiveGroup(renderer, camera);
 			scene.add(group);
 
@@ -270,11 +296,24 @@
 				scale: 1,
 				x: 0,
 				y: 1.6,
-				z: 0
+				z: -1,
 			};
 			const gui = new GUI({ width: 300 });
 			gui.add(parameters, 'scale', 0.5, 10.0);
+			gui.add(parameters, 'x', -10.0, 10.0);
+			gui.add(parameters, 'y', -10.0, 10.0);
+			gui.add(parameters, 'z', -10.0, 10.0);
 
+			// gui.domElement.style.visibility = 'hidden';
+
+
+			const mesh = new HTMLMesh(gui.domElement);
+			mesh.position.x = 1.45;
+			mesh.position.y = 1.5;
+			mesh.position.z = - 0.5;
+			mesh.rotation.y = -Math.PI / 4;
+			mesh.scale.setScalar(2);
+			group.add(mesh);
 
 
 			function animate() {
@@ -299,7 +338,9 @@
 					// camera.lookAt(screenMesh.position.x, screenMesh.position.y, screenMesh.position.z)
 				}
 
-
+				let { x, y, z, scale } = parameters;
+				screenMesh.scale.set(scale * videoCanvas.width / videoCanvas.height, scale, scale);
+				screenMesh.position.set(x, y, z);
 
 				if (started) {
 					player.nextFrame();
