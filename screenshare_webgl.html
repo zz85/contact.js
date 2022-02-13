@@ -198,8 +198,6 @@
 
 			// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
 
-			// var screenGeometry = new ParametricGeometry( ParametricGeometries.plane( 1, 1 ), 10, 10 );
-
 			function curveFunction(u, v, target) {
 				const x = u * 1;
 				const y = v * 1;
@@ -207,7 +205,9 @@
 				// could use spline curve here too
 				// const z = Math.sin(-u * Math.PI) * 0.2;
 				// normalize  between  -0.4, 0.4
-				const z = ((u - 0.5)) ** 2 * 1;
+				const z = ((u - 0.5)) ** 2 * 0.4;
+				// flat
+				// const z  = 0;
 
 				target.set(x, y, z);
 			}
@@ -293,10 +293,10 @@
 			group.add(statsMesh);
 
 			const parameters = {
-				scale: 1,
+				scale: 1.5,
 				x: 0,
-				y: 1.6,
-				z: -1,
+				y: 1.4,
+				z: -0.65,
 			};
 			const gui = new GUI({ width: 300 });
 			gui.add(parameters, 'scale', 0.5, 10.0);
