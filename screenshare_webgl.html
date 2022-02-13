@@ -15,9 +15,8 @@
 
 <body>
 
-	<div id="stats"></div>
+	<div id="stats" style="width:100px; height: 100px;  float: left; position: absolute;"></div>
 	<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
-
 
 	<!-- Import maps polyfill -->
 	<!-- Remove this when import maps will be widely supported -->
@@ -31,10 +30,69 @@
 			}
 		</script>
 
-	<script type="module">
+	<script src="src/wire.js"></script>
+	<script src="src/connection.js"></script>
+	<script src="src/transmitter.js"></script>
+	<!-- <script src="src/transmitter_example.js"></script> -->
+	<script type="text/javascript">
+		var target = 'wss://' + location.hostname + '/touch/touchpad';
+		var connection = new Connection(target, handler);
+		connection.open();
 
-		// var imageCanvas = document.getElementById('video-canvas')
-		var url = 'ws://' + document.location.hostname + ':8082/';
+		// activateTouch();
+
+		var scale = '.75';
+		var mode = 'sr';
+
+		function screenshare() {
+			mode = 'sr';
+			resizeStream();
+		}
+
+		function resizeStream() {
+			connection.sendType(mode, {
+				scale: scale
+			});
+
+			// TODO server should broadcast request to resize
+			setTimeout(() => {
+				player.video.hasSequenceHeader = false
+			}, 500);
+		}
+
+		function webcam() {
+			mode = 'wr';
+			resizeStream();
+		}
+
+		function setScale(s) {
+			scale = s;
+			resizeStream();
+		}
+
+		function ask() {
+			var input = prompt('Say something');
+			if (input) connection.sendType('rt', {
+				text: input
+			})
+		}
+
+		function activate(target) {
+			target.addEventListener('keydown', (e) => {
+				console.log('down', e);
+				connection.send('key: ' + e.key + ' code: ' + e.code);
+			});
+
+			target.addEventListener('keyup', (e) => {
+				console.log('up', e);
+			});
+		}
+	</script>
+
+
+	<script type="module">
+		// var url = 'ws://' + document.location.hostname + ':8082/';
+		var url = 'wss://' + document.location.hostname + '/screenshare';
 		var started;
 		var videoCanvas = document.createElement('canvas');
 
@@ -57,10 +115,15 @@
 		});
 		window.player = player;
 
+
 		import * as THREE from 'three';
 
 		import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
 		import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
+		import { HTMLMesh } from '/gits/three.js/examples/jsm/interactive/HTMLMesh.js';
+
+		import { InteractiveGroup } from '/gits/three.js/examples/jsm/interactive/InteractiveGroup.js';
+		import { XRControllerModelFactory } from '/gits/three.js/examples/jsm/webxr/XRControllerModelFactory.js';
 
 		var cube, videoTexture, raycaster;
 		const pointer = new THREE.Vector2();
@@ -68,14 +131,8 @@
 		function init() {
 			const scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xdddddd)
-			// scene.fog = new THREE.FogExp2( 0x555555, 0.0025 );
-			const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-			// const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
-			// hemiLight.color.setHSL( 0.6, 1, 0.6 );
-			// hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-			// hemiLight.position.set( 0, 50, 0 );
-			// scene.add( hemiLight );
+			scene.fog = new THREE.FogExp2( 0x333333, 0.0025 );
+			const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10);
 
 			var object3d = new THREE.AmbientLight(0x101010)
 			object3d.name = 'Ambient light'
@@ -128,8 +185,6 @@
 			plane.receiveShadow = true;
 			scene.add(plane);
 
-
-
 			// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
 
 			// var screenGeometry = new ParametricGeometry( ParametricGeometries.plane( 1, 1 ), 10, 10 );
@@ -174,6 +229,17 @@
 
 				pointer.set(mouseX - 0.5, mouseY - 0.5)
 			})
+
+			// const group = new InteractiveGroup( renderer, camera );
+			// scene.add( group );
+
+			const mesh = new HTMLMesh( stats );
+			mesh.position.x = - 0.75;
+			mesh.position.y = 1.5;
+			mesh.position.z = - 0.5;
+			mesh.rotation.y = Math.PI / 4;
+			mesh.scale.setScalar( 2 );
+			scene.add( mesh );
 
 
 			function animate() {
