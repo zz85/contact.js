@@ -45,7 +45,6 @@
 
 					if (!started) {
 						console.log(videoCanvas.width, videoCanvas.height);
-						// started = setTimeout(init, 2000)
 						player.pause();
 						started = true;
 						init();
@@ -60,21 +59,23 @@
 			import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
 			import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
 
-			var cube, videoTexture;
+			var cube, videoTexture, raycaster;
+			const pointer = new THREE.Vector2();
 
 
 			function init() {
 				const scene = new THREE.Scene();
 				const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
+				var raycaster = new THREE.Raycaster();
 				const renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setPixelRatio( window.devicePixelRatio );
 				document.body.appendChild( renderer.domElement );
 
-				const geometry = new THREE.BoxGeometry();
-				// const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-				const material = new THREE.MeshLambertMaterial({color: 0x44aa88});  // greenish blue
-				cube = new THREE.Mesh( geometry, material );
+				// const geometry = new THREE.BoxGeometry();
+				// const material = new THREE.MeshLambertMaterial({color: 0x44aa88});
+				// cube = new THREE.Mesh( geometry, material );
 				// scene.add( cube );
 
 				camera.position.z = 5;
@@ -124,8 +125,6 @@
 				screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
 				screenMesh.scale.multiplyScalar(4);
 				screenMesh.rotation.x =  -Math.PI / 6;
-				// screenMesh.scale.set( 10, 10, 10 );
-				// screenMesh.position.z = -10;
 
 				scene.add(screenMesh)
 
@@ -133,24 +132,35 @@
 				window.addEventListener('mousemove', (e) => {
 					mouseX = e.clientX / innerWidth ;
 					mouseY = e.clientY / innerHeight;
+
+					pointer.set(mouseX - 0.5, mouseY - 0.5)
 				})
 
 
 				function animate() {
 					requestAnimationFrame( animate );
 
-
 					screenMesh.rotation.x = (mouseY - 0.5)  * 0.0;
 
 					// camera.position.y  = -3.5 + 8 * mouseY;
 					// camera.position.z  = 2 + 8 * mouseX;
+
+					raycaster.setFromCamera( pointer, camera );
+
+					const intersects = raycaster.intersectObject( screenMesh, false );
+					const found = intersects[0];
+					if (found) {
+						console.log(found.uv)
+					}
+
+
+
 
 					camera.position.x += ((mouseX - 0.5) * 10 - camera.position.x ) * .05;
 					camera.position.y += ( -( mouseY - 0.5) * 10 - camera.position.y  ) * .05;
 
 					window.c = camera;
 					camera.lookAt(screenMesh.position.x, screenMesh.position.y , screenMesh.position.z)
-
 
 					player.nextFrame();
 					videoTexture.needsUpdate = true;
