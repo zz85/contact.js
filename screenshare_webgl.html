@@ -15,7 +15,7 @@
 
 <body>
 
-	<div id="stats" ></div>
+	<div id="stats"></div>
 	<script type="text/javascript" src="vendor/jsmpeg/jsmpeg.min.js"></script>
 
 
@@ -68,11 +68,47 @@
 		function init() {
 			const scene = new THREE.Scene();
 			scene.background = new THREE.Color(0xdddddd)
-			scene.fog = new THREE.FogExp2( 0x555555, 0.0025 );
+			// scene.fog = new THREE.FogExp2( 0x555555, 0.0025 );
 			const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+			// const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+			// hemiLight.color.setHSL( 0.6, 1, 0.6 );
+			// hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+			// hemiLight.position.set( 0, 50, 0 );
+			// scene.add( hemiLight );
+
+			var object3d = new THREE.AmbientLight(0x101010)
+			object3d.name = 'Ambient light'
+			// object3d.castShadow = true;
+			scene.add(object3d)
+
+			var object3d = new THREE.DirectionalLight('white', 0.225)
+			object3d.position.set(2.6, 1, 3)
+			object3d.position.multiplyScalar(10);
+			object3d.name = 'Back light'
+			object3d.castShadow = true;
+			scene.add(object3d)
+
+
+			var object3d = new THREE.DirectionalLight('white', 0.375)
+			object3d.position.set(-2, -1, 0)
+			object3d.position.multiplyScalar(10);
+			object3d.name = 'Key light'
+			object3d.castShadow = true;
+			scene.add(object3d)
+
+			var object3d = new THREE.DirectionalLight('white', 0.75)
+			object3d.position.set(3, 3, 2)
+			object3d.position.multiplyScalar(10);
+			object3d.name = 'Fill light'
+			object3d.castShadow = true;
+			scene.add(object3d)
+
 
 			var raycaster = new THREE.Raycaster();
 			const renderer = new THREE.WebGLRenderer();
+			// renderer.shadowMap.enabled = true;
+
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setPixelRatio(window.devicePixelRatio);
 			document.body.appendChild(renderer.domElement);
@@ -84,18 +120,15 @@
 
 			camera.position.z = 5;
 
-			var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), new THREE.MeshPhongMaterial({ color: 0xe0e0e0 }));
-			plane.position.y = - 10;
+			var groundMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+			groundMaterial.color.setHSL(0.6, 0.1, 0.7);
+			var plane = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), groundMaterial);
+			plane.position.y = - 2;
 			plane.rotation.x = - Math.PI / 2;
+			plane.receiveShadow = true;
 			scene.add(plane);
 
-			{
-				const color = 0xFFFFFF;
-				const intensity = 1;
-				const light = new THREE.DirectionalLight(color, intensity);
-				light.position.set(-1, 2, 4);
-				scene.add(light);
-			}
+
 
 			// const screenGeometry = new THREE.PlaneGeometry( 1, 1 );
 
@@ -130,6 +163,7 @@
 			screenMesh.scale.x = videoCanvas.width / videoCanvas.height;
 			screenMesh.scale.multiplyScalar(4);
 			screenMesh.rotation.x = -Math.PI / 6;
+			screenMesh.castShadow = true;
 
 			scene.add(screenMesh)
 
@@ -172,6 +206,7 @@
 
 				renderer.render(scene, camera);
 			};
+
 
 			animate();
 		}
