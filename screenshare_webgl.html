@@ -122,7 +122,6 @@
 
 		import { VRButton } from '/gits/three.js/examples/jsm/webxr/VRButton.js';
 		import { ParametricGeometry } from '/gits/three.js/examples/jsm/geometries/ParametricGeometry.js';
-		import { ParametricGeometries } from '/gits/three.js/examples/jsm/geometries/ParametricGeometries.js';
 		import { HTMLMesh } from '/gits/three.js/examples/jsm/interactive/HTMLMesh.js';
 
 		import Stats from '/gits/three.js/examples/jsm/libs/stats.module.js';
@@ -139,7 +138,7 @@
 			// scene.background = new THREE.Color(0xdddddd)
 			scene.background = new THREE.Color(0x333333)
 			// scene.fog = new THREE.FogExp2( 0x333333, 0.0025 );
-			const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10);
+			const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000);
 			camera.position.set(0, 1.6, 1.5);
 
 			var object3d = new THREE.AmbientLight(0x101010)
@@ -203,9 +202,9 @@
 				const y = v * 1;
 
 				// could use spline curve here too
-				// const z = Math.sin(-u * Math.PI) * 0.2;
+				const z = Math.sin(-u * Math.PI) * 0.2;
 				// normalize  between  -0.4, 0.4
-				const z = ((u - 0.5)) ** 2 * 0.4;
+				// const z = ((u - 0.5)) ** 2 * 0.4;
 				// flat
 				// const z  = 0;
 
@@ -256,6 +255,26 @@
 			controller2.add(new THREE.Line(geometry));
 			scene.add(controller2);
 
+			[controller1, controller2].forEach(c=> {
+				c.addEventListener( 'selectstart', onSelectStart );
+				c.addEventListener( 'selectend', onSelectEnd );
+				c.addEventListener( 'squeezestart', (e) => {
+					send('squeeze ' + JSON.stringify(e))
+				} );
+			})
+
+			function onSelectStart(e) {
+				send('start ' + JSON.stringify(e))
+				this.userData.isSelecting = true;
+
+			}
+
+			function onSelectEnd(e) {
+				send('end ' + JSON.stringify(e))
+				this.userData.isSelecting = false;
+
+			}
+
 			//
 
 			const controllerModelFactory = new XRControllerModelFactory();
@@ -293,16 +312,22 @@
 			group.add(statsMesh);
 
 			const parameters = {
-				scale: 1.5,
+				// scale: 1.5,
+				// x: 0,
+				// y: 1.4,
+				// z: -0.65,
+				scale: 5,
 				x: 0,
 				y: 1.4,
-				z: -0.65,
+				z: -4,
+				rx: 0,
 			};
 			const gui = new GUI({ width: 300 });
 			gui.add(parameters, 'scale', 0.5, 10.0);
 			gui.add(parameters, 'x', -10.0, 10.0);
 			gui.add(parameters, 'y', -10.0, 10.0);
 			gui.add(parameters, 'z', -10.0, 10.0);
+			gui.add(parameters, 'rx', -1, 1);
 
 			// gui.domElement.style.visibility = 'hidden';
 
@@ -338,9 +363,10 @@
 					// camera.lookAt(screenMesh.position.x, screenMesh.position.y, screenMesh.position.z)
 				}
 
-				let { x, y, z, scale } = parameters;
+				let { x, y, z, scale, rx } = parameters;
 				screenMesh.scale.set(scale * videoCanvas.width / videoCanvas.height, scale, scale);
 				screenMesh.position.set(x, y, z);
+				screenMesh.rotation.x = rx * Math.PI;
 
 				if (started) {
 					player.nextFrame();
